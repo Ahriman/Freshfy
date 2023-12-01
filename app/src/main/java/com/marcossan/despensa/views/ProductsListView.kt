@@ -45,7 +45,7 @@ fun ProductsListView(navController: NavController, viewModel: ProductsViewModel)
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("agregar") },
+                onClick = { navController.navigate("add") },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White
             ) {
@@ -77,7 +77,7 @@ fun ContentInicioView(
                         Text(text = it.code)
                         Text(text = it.name)
                         IconButton(onClick = {
-                            navController.navigate("editar/${it.id}/${it.code}/${it.name}")
+                            navController.navigate("edit/${it.id}/${it.code}/${it.name}")
                         }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar")
                         }

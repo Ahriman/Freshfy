@@ -32,7 +32,13 @@ import com.marcossan.despensa.viewmodels.ProductsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditView(navController: NavController, viewModel: ProductsViewModel, id: Int, usuario: String?, email: String?) {
+fun EditView(
+    navController: NavController,
+    viewModel: ProductsViewModel,
+    id: Int,
+    code: String?,
+    name: String?
+) {
 
     Scaffold(
         topBar = {
@@ -58,13 +64,19 @@ fun EditView(navController: NavController, viewModel: ProductsViewModel, id: Int
             )
         }
     ) {
-        ContentEditarView(it, navController, viewModel, id, usuario, email)
+        ContentEditView(
+            it = it,
+            navController = navController,
+            viewModel = viewModel,
+            id = id, code = code,
+            name = name
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentEditarView(
+fun ContentEditView(
     it: PaddingValues,
     navController: NavController,
     viewModel: ProductsViewModel,

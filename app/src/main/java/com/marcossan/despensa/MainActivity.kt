@@ -10,7 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.room.Room
+import com.marcossan.despensa.navigation.Navigation
+import com.marcossan.despensa.room.ProductsDatabase
 import com.marcossan.despensa.ui.theme.DespensaTheme
+import com.marcossan.despensa.viewmodels.ProductsViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,25 +26,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    val database = Room.databaseBuilder(this, ProductsDatabase::class.java, "db_products").build()
+                    val dao = database.productsDao()
+
+                    val productViewModel = ProductsViewModel(dao = dao)
+                    Navigation(productViewModel = productViewModel)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DespensaTheme {
-        Greeting("Android")
     }
 }
