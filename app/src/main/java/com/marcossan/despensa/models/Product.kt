@@ -15,13 +15,13 @@ data class Product(
     val code: String,
     @ColumnInfo("name")
     var name: String,
-    @ColumnInfo("imageUrl")
-    val imageUrl: String,
-    @ColumnInfo("expirationDate")
-    val expirationDate: String = "No disponible",
-    @ColumnInfo("dateAdded")
-    val dateAdded: String = "",
-    @ColumnInfo("quantity")
-    val quantity: String = "1"
+//    @ColumnInfo("imageUrl")
+//    val imageUrl: String,
+//    @ColumnInfo("expirationDate")
+//    val expirationDate: String = "No disponible",
+//    @ColumnInfo("dateAdded")
+//    val dateAdded: String = "",
+//    @ColumnInfo("quantity")
+//    val quantity: String = "1"
 )
 
