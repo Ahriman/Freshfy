@@ -28,10 +28,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.marcossan.despensa.R
 import com.marcossan.despensa.models.Product
 import com.marcossan.despensa.viewmodels.ProductsViewModel
 
@@ -55,14 +57,14 @@ fun ProductsListView(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("add") },
+                onClick = { navController.navigate("add") }, // TODO: Crear rutas de Screens
                 shape = CircleShape,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar",
+                    contentDescription = stringResource(R.string.add),
                     tint = Color.White
                 )
             }
@@ -111,6 +113,13 @@ fun ProductListItem(
             .fillMaxWidth()
             .clickable { onOpenProductItem() }
     ) {
+//        AsyncImage(
+//            model = product.imageUrl,
+//            contentDescription = "",
+//            modifier = Modifier
+//                .padding(top = 15.dp)
+//                .size(80.dp)
+//        )
         Column(modifier = Modifier.padding(16.dp)) {
             // Nombre
             Text(
@@ -122,6 +131,14 @@ fun ProductListItem(
             Text(
                 text = product.code,
             )
+//            // Fecha caducidad
+//            Text(
+//                text = product.expirationDate,
+//            )
+//            // Fecha añadido
+//            Text(
+//                text = product.dateAdded,
+//            )
         }
 
         Row(
@@ -133,14 +150,14 @@ fun ProductListItem(
             IconButton(onClick = {
                 navController.navigate("edit/${product.id}/${product.code}/${product.name}")
             }) {
-                Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar")
+                Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.edit))
             }
             IconButton(onClick = {
                 viewModel.deleteProduct(product)
             }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar"
+                    contentDescription = stringResource(R.string.delete)
                 )
             }
         }

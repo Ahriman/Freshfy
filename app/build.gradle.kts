@@ -102,6 +102,11 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:$navVersion") // Mínimo instalar esta
     // Navigation end
 
+    // Google Vision
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.1")

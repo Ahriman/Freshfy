@@ -48,4 +48,16 @@ class ProductsViewModel(
 
     // ROOM end
 
+
+    private var _barcode by mutableStateOf("")
+    val barcode get() = _barcode
+
+    private var _isBarcodeScanned by mutableStateOf(false)
+    val isBarcodeScanned get() = _isBarcodeScanned
+
+    fun onScannedBarcode(barcode: String) {
+        _barcode = barcode
+        _isBarcodeScanned = true
+    }
+
 }
