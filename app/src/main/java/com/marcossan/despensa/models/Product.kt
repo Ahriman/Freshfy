@@ -15,8 +15,8 @@ data class Product(
     val code: String,
     @ColumnInfo("name")
     var name: String,
-    @ColumnInfo("imageUrl")
-    val imageUrl: String? = "",
+//    @ColumnInfo("imageUrl")
+//    val imageUrl: String,
 //    @ColumnInfo("expirationDate")
 //    val expirationDate: String = "No disponible",
 //    @ColumnInfo("dateAdded")
