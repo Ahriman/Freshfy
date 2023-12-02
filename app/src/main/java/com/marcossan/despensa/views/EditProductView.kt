@@ -32,14 +32,20 @@ import com.marcossan.despensa.viewmodels.ProductsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddView(navController: NavController, viewModel: ProductsViewModel) {
+fun EditView(
+    navController: NavController,
+    viewModel: ProductsViewModel,
+    id: Int,
+    code: String?,
+    name: String?
+) {
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Agregar View",
+                        text = "Editar View",
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
@@ -58,23 +64,28 @@ fun AddView(navController: NavController, viewModel: ProductsViewModel) {
             )
         }
     ) {
-        ContentAddView(it, navController, viewModel)
+        ContentEditProductView(
+            it = it,
+            navController = navController,
+            viewModel = viewModel,
+            id = id, code = code,
+            name = name
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentAddView(
+fun ContentEditProductView(
     it: PaddingValues,
     navController: NavController,
-    viewModel: ProductsViewModel
+    viewModel: ProductsViewModel,
+    id: Int,
+    code: String?,
+    name: String?
 ) {
-    var code by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-//    var imageUrl by remember { mutableStateOf("") }
-//    var expirationDate by remember { mutableStateOf("") }
-//    var dateAdded by remember { mutableStateOf("") }
-//    var quantity by remember { mutableStateOf("") }
+    var code by remember { mutableStateOf(code) }
+    var name by remember { mutableStateOf(name) }
 
     Column(
         modifier = Modifier
@@ -84,7 +95,7 @@ fun ContentAddView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
-            value = code,
+            value = code ?: "",
             onValueChange = { code = it },
             label = { Text(text = "Código de barras") },
             modifier = Modifier
@@ -94,7 +105,7 @@ fun ContentAddView(
         )
 
         OutlinedTextField(
-            value = name,
+            value = name ?: "",
             onValueChange = { name = it },
             label = { Text(text = "Nombre") },
             modifier = Modifier
@@ -105,21 +116,13 @@ fun ContentAddView(
 
         Button(
             onClick = {
-                val product = Product(
-                    code = code,
-                    name = name,
-//                    imageUrl = imageUrl,
-//                    expirationDate = expirationDate,
-//                    dateAdded = dateAdded,
-//                    quantity = quantity,
-                )
+                val product = Product(id = id, code = code!!, name = name!!)
 
-
-                viewModel.addProduct(product)
+                viewModel.updateProduct(product)
                 navController.popBackStack()
             }
         ) {
-            Text(text = "Agregar")
+            Text(text = "Editar")
         }
     }
 }

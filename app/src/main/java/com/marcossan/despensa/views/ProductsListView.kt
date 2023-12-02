@@ -53,12 +53,12 @@ fun ProductsListView(navController: NavController, viewModel: ProductsViewModel)
             }
         }
     ) {
-        ContentInicioView(it, navController, viewModel)
+        ContentListProductView(it, navController, viewModel)
     }
 }
 
 @Composable
-fun ContentInicioView(
+fun ContentListProductView(
     it: PaddingValues,
     navController: NavController,
     viewModel: ProductsViewModel
