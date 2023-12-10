@@ -9,7 +9,7 @@ import androidx.navigation.navArgument
 import com.marcossan.despensa.views.AddProductScreen
 import com.marcossan.despensa.viewmodels.ProductViewModel
 import com.marcossan.despensa.views.EditProductScreen
-import com.marcossan.despensa.views.ProductsListScreen
+import com.marcossan.despensa.views.ProductsScreen
 import com.marcossan.despensa.views.BarcodeScannerScreen
 
 @Composable
@@ -21,19 +21,21 @@ fun Navigation(
 
     NavHost(navController = navController, startDestination = "start") {
         composable("start") {
-            ProductsListScreen(navController, productViewModel)
+            ProductsScreen(navController, productViewModel)
         }
 
-        // Entrada por defecto
+//        // Entrada por defecto
         composable("add") {
-            AddProductScreen(navController, productViewModel)
+            AddProductScreen(navController, productViewModel, it.arguments?.getString("code") ?: "")
         }
 
         // Entrada desde el escáner de códigos de barras
         composable("add/{code}", arguments = listOf(
-            navArgument("code") { type = NavType.IntType }
+            navArgument("code") { type = NavType.StringType }
         )) {
-            AddProductScreen(navController, productViewModel)
+            AddProductScreen(
+                navController, productViewModel, it.arguments?.getString("code") ?: "",
+            )
         }
 
         composable("edit/{id}/{code}/{name}", arguments = listOf(
@@ -60,7 +62,11 @@ fun Navigation(
         ) {
             val barcode = it.arguments?.getString("barcode")
             requireNotNull(barcode) { "No puede ser nulo porque la pantalla de producto necesita un código de barras" }
-            BarcodeScannerScreen(navController, productViewModel = productViewModel, barcode = barcode)
+            BarcodeScannerScreen(
+                navController,
+                productViewModel = productViewModel,
+                barcode = barcode
+            )
         }
     }
 

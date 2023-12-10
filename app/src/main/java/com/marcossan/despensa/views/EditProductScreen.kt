@@ -118,7 +118,7 @@ fun ContentEditProductScreen(
             onClick = {
                 val product = Product(id = id, code = code!!, name = name!!, imageUrl = "") // TODO imageUrl
 
-                viewModel.updateProduct(product)
+//                viewModel.updateProduct(product)
                 navController.popBackStack()
             }
         ) {

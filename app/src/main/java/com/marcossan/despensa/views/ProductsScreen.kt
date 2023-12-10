@@ -44,7 +44,7 @@ import com.marcossan.despensa.viewmodels.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductsListScreen(
+fun ProductsScreen(
     navController: NavController,
     viewModel: ProductViewModel
 ) {
@@ -76,7 +76,7 @@ fun ProductsListScreen(
         }
     ) {
         if (viewModel.state.products.isNotEmpty()) {
-            ContentListProductScreen(it, navController, viewModel)
+            ContentProductsScreen(it, navController, viewModel)
             println("Test1")
         } else {
             println("Test2")
@@ -101,7 +101,7 @@ fun ProductsListScreen(
 }
 
 @Composable
-fun ContentListProductScreen(
+fun ContentProductsScreen(
     it: PaddingValues,
     navController: NavController,
     viewModel: ProductViewModel
@@ -116,9 +116,7 @@ fun ContentListProductScreen(
                     navController = navController,
                     viewModel = viewModel,
                     product = product,
-                    onOpenProductItem = {
-                        navController.navigate(route = "scanner/${product.code}")
-                    }
+                    onOpenProductItem = { navController.navigate(route = "scanner/${product.code}") }
                 )
 
             }
@@ -142,7 +140,7 @@ fun ProductListItem(
         Box(modifier = Modifier.align(Alignment.CenterVertically)) {
             AsyncImage(
                 model = product.imageUrl,
-                contentDescription = "",
+                contentDescription = "Imagen del producto",
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .size(80.dp),
@@ -158,23 +156,23 @@ fun ProductListItem(
             )
             // TODO: Marca
             Text(
-                text = product.code,
+                text = "Código: ${product.code}",
             )
             // Fecha caducidad
             Text(
-                text = product.expirationDate,
+                text = "Caduca: ${product.expirationDate}",
             )
             // Fecha añadido
             Text(
-                text = product.dateAdded,
+                text = "Añadido: ${product.dateAdded}",
             )
         }
 
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(alignment = Alignment.CenterVertically),
-            horizontalArrangement = Arrangement.End
+            horizontalAlignment = Alignment.End
         ) {
             IconButton(onClick = {
                 navController.navigate("edit/${product.id}/${product.code}/${product.name}")
@@ -185,7 +183,7 @@ fun ProductListItem(
                 )
             }
             IconButton(onClick = {
-                viewModel.deleteProduct(product)
+//                viewModel.deleteProduct(product)
             }) {
                 Icon(
                     imageVector = Icons.Default.Delete,

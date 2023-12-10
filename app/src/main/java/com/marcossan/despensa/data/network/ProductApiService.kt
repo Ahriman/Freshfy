@@ -1,7 +1,7 @@
 package com.marcossan.despensa.data.network
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.marcossan.despensa.domain.model.Product
+//import com.marcossan.despensa.domain.model.Product
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
@@ -24,11 +24,11 @@ interface ProductApiService {
         barcode: String
     ): ProductJson
 
-    @GET("product/{barcode}.json")
-    suspend fun getProductDomain(
-        @Path("barcode")
-        barcode: String
-    ): Product
+//    @GET("product/{barcode}.json")
+//    suspend fun getProductDomain(
+//        @Path("barcode")
+//        barcode: String
+//    ): Product
 
     object OpenFoodFactsApi {
         val retrofitService: ProductApiService by lazy {

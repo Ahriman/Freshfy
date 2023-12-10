@@ -12,6 +12,7 @@ import com.marcossan.despensa.states.ProductsState
 import com.marcossan.despensa.data.network.ProductApiService
 import com.marcossan.despensa.data.network.ProductJson
 import com.marcossan.despensa.data.local.ProductRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.MissingFieldException
@@ -20,6 +21,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
 sealed interface ScannerUiState {
     data class Success(val product: Product) : ScannerUiState
@@ -30,7 +32,8 @@ sealed interface ScannerUiState {
 /**
  * Encargado de conectar las peticiones a la base de datos y actualizar las vistas
  */
-class ProductViewModel(
+@HiltViewModel
+class ProductViewModel @Inject constructor(
 //    private val dao: ProductsDatabaseDao
     private val productRepository: ProductRepository
 ): ViewModel()  {

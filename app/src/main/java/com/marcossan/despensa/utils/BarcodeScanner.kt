@@ -1,11 +1,115 @@
 package com.marcossan.despensa.utils
 
 import android.content.Context
+import android.util.Log
+import androidx.annotation.OptIn
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
+import com.google.mlkit.vision.barcode.BarcodeScanner
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.marcossan.despensa.viewmodels.ProductViewModel
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
+//class BarcodeScanner(
+//    private val context: Context,
+//    private val listener: BarcodeListener,
+//    private val previewView: PreviewView,
+////    private val navController: NavController
+//) {
+//
+//    private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+//    private lateinit var barcodeScanner: BarcodeScanner
+//
+//    init {
+//        val options = BarcodeScannerOptions.Builder()
+//            .setBarcodeFormats(Barcode.FORMAT_ALL_FORMATS)
+//            .build()
+//
+//        barcodeScanner = BarcodeScanning.getClient(options)
+//    }
+//
+//    fun startScan() {//previewView: PreviewView
+//        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+//
+//        cameraProviderFuture.addListener({
+//            val cameraProvider = cameraProviderFuture.get()
+//
+//            val preview = Preview.Builder()
+//                .build()
+//                .also {
+//                    it.setSurfaceProvider(previewView.surfaceProvider)
+//                }
+//
+//            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+//
+//            val analysis = ImageAnalysis.Builder()
+//                .setTargetResolution(android.util.Size(640, 480))
+//                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+//                .build()
+//
+//            analysis.setAnalyzer(cameraExecutor, BarcodeAnalyzer(barcodeScanner, listener))
+//
+//            cameraProvider.bindToLifecycle(
+//                context as LifecycleOwner,
+//                cameraSelector,
+//                preview,
+//                analysis
+//            )
+//        }, ContextCompat.getMainExecutor(context))
+//    }
+//
+//    interface BarcodeListener {
+//        fun onBarcodeScanned(barcode: String)
+//    }
+//
+//    private class BarcodeAnalyzer(
+//        private val barcodeScanner: BarcodeScanner,
+//        private val listener: BarcodeListener
+//    ) : ImageAnalysis.Analyzer {
+//
+//        @OptIn(ExperimentalGetImage::class)
+//        override fun analyze(imageProxy: ImageProxy) {
+//            val mediaImage = imageProxy.image
+//            if (mediaImage != null) {
+//                val image = com.google.mlkit.vision.common.InputImage.fromMediaImage(
+//                    mediaImage,
+//                    imageProxy.imageInfo.rotationDegrees
+//                )
+//
+//                barcodeScanner.process(image)
+//                    .addOnSuccessListener { barcodes ->
+//                        for (barcode in barcodes) {
+//                            val value = barcode.displayValue ?: ""
+//                            listener.onBarcodeScanned(value)
+//                        }
+//                        imageProxy.close()
+//                    }
+//                    .addOnFailureListener { exception ->
+//                        Log.e(
+//                            "BarcodeScanner",
+//                            "Error al procesar el escaneo: ${exception.message}"
+//                        )
+//                        imageProxy.close()
+//                    }
+//            }
+//        }
+//    }
+//}
+
+
 
 class BarcodeScanner(
     appContext: Context,

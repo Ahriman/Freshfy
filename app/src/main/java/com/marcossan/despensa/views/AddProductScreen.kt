@@ -1,6 +1,7 @@
 package com.marcossan.despensa.views
 
 import android.annotation.SuppressLint
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -53,13 +54,29 @@ import java.time.ZoneId
 @Composable
 fun AddProductScreen(
     navController: NavController,
-    viewModel: ProductViewModel
+    productViewModel: ProductViewModel,
+    code: String?
 ) {
 
     lateinit var barcodeScanner: BarcodeScanner
 
     val context = LocalContext.current
     barcodeScanner = BarcodeScanner(context, navController)
+//    barcodeScanner = BarcodeScanner(context = context, object : BarcodeScanner.BarcodeListener {
+//        override fun onBarcodeScanned(barcode: String) {
+//            // Lógica para manejar el código de barras escaneado en tu ComposeActivity
+//        }
+//    })
+
+    val previewView =
+        PreviewView(context) // Puedes crear y configurar el PreviewView según tus necesidades
+//    barcodeScanner.startScan(previewView)
+
+//    barcodeScanner = BarcodeScanner(context, object : BarcodeScanner.BarcodeListener {
+//        override fun onBarcodeScanned(barcode: String) {
+//            // Lógica para manejar el código de barras escaneado en tu ComposeActivity
+//        }
+//    }, previewView)
 
     Scaffold(
         topBar = {
@@ -88,8 +105,11 @@ fun AddProductScreen(
         ContentAddProductScreen(
             it = it,
             navController = navController,
-            viewModel = viewModel,
-            onScanBarcode = { barcodeScanner.startScan(viewModel) })
+            productViewModel = productViewModel,
+            onScanBarcode = { barcodeScanner.startScan(productViewModel) },
+            code = code ?: ""
+        )
+//            onScanBarcode = { barcodeScanner.startScan() })
     }
 }
 
@@ -99,13 +119,14 @@ fun AddProductScreen(
 fun ContentAddProductScreen(
     it: PaddingValues,
     navController: NavController,
-    viewModel: ProductViewModel,
+    productViewModel: ProductViewModel,
     onScanBarcode: suspend () -> Unit,
+    code: String
 ) {
 
     val scope = rememberCoroutineScope()
 
-    var code by remember { mutableStateOf("") }
+    var code by remember { mutableStateOf(code) }
     var name by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
     var expirationDate by remember { mutableStateOf("") }
@@ -120,13 +141,13 @@ fun ContentAddProductScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
-//            value = viewModel.barcode,
-            value = code,
-            onValueChange = { code = it },
-//            onValueChange = { viewModel.onBarcodeChange(it) },
-//            onValueChange = { productBarcode ->
-//                viewModel.onBarcodeChange(productBarcode)
-//            },
+            value = productViewModel.barcode,
+//            value = code,
+//            onValueChange = { code = it },
+//            onValueChange = { productViewModel.onBarcodeChange(it) },
+            onValueChange = { productBarcode ->
+                productViewModel.onBarcodeChange(productBarcode)
+            },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp),
@@ -198,7 +219,7 @@ fun ContentAddProductScreen(
                             .toLocalDate()
                     dateExpired =
                         "${localDate.dayOfMonth}/${localDate.monthValue}/${localDate.year}"
-                    viewModel.onProductExpireDateChange(dateExpired)
+                    productViewModel.onProductExpireDateChange(dateExpired)
                 }
                 DatePicker(state = state)
             }
@@ -254,6 +275,7 @@ fun ContentAddProductScreen(
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp),
             label = { Text(text = stringResource(R.string.product_quantity)) },
+            placeholder = { Text(text = "1") },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number
             ),
@@ -263,7 +285,7 @@ fun ContentAddProductScreen(
 
         // Usar este método para obtener un producto con los datos de la API - TODO: Quitar de aquí
         // TODO: Lo estoy llamando 2 veces..
-        viewModel.getProduct(barcode = code) // TODO:
+        productViewModel.getProduct(barcode = code) // TODO:
 
         Button(
             onClick = {
@@ -275,20 +297,22 @@ fun ContentAddProductScreen(
 //                    dateAdded = dateAdded,
 //                    quantity = viewModel.product.quantity,
 //                )
-                val product = viewModel.getProduct(code)
+                val product = productViewModel.getProduct(code)
                 println("product = ${product}")
 
-                viewModel.addProduct(viewModel.product)
+//                productViewModel.addProduct(productViewModel.product)
                 navController.popBackStack()
             }
         ) {
             Text(text = "Agregar")
         }
 
-        if (viewModel.isBarcodeScanned) {
+        // La primera vez que entramos a la pantalla, no intenta cargar los datos
+        // La segunda vez que se entra, es después de escanear el código y ya carga correctamente los datos.
+        if (productViewModel.isBarcodeScanned) {
             scope.launch {
-                viewModel.getProductFromApi(viewModel.barcode)
-                viewModel.setIsBarcodeScanned(false)
+                productViewModel.getProductFromApi(productViewModel.barcode)
+                productViewModel.setIsBarcodeScanned(false)
             }
         }
 
