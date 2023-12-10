@@ -1,11 +1,11 @@
-package com.marcossan.despensa
+package com.marcossan.despensa.utils
 
 import android.content.Context
 import androidx.navigation.NavController
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
-import com.marcossan.despensa.viewmodels.ProductsViewModel
+import com.marcossan.despensa.viewmodels.ProductViewModel
 
 class BarcodeScanner(
     appContext: Context,
@@ -25,14 +25,14 @@ class BarcodeScanner(
     private val scanner = GmsBarcodeScanning.getClient(appContext, options)
 //    private val barCodeResults = MutableStateFlow<String?>(null)
 
-    suspend fun startScan(viewModel: ProductsViewModel) {
+    suspend fun startScan(viewModel: ProductViewModel) {
         try {
             scanner.startScan()
                 .addOnSuccessListener { barcode ->
                     // Task completed successfully
 //                    barCodeResults.value = barcode.displayValue
                     viewModel.onScannedBarcode(barcode = barcode.displayValue.toString())
-                    navController.navigate(route = "scanner_screen/${barcode.displayValue.toString()}")
+                    navController.navigate(route = "add/${barcode.displayValue.toString()}")
 //                    navController.navigate(route = Screens.ScannerScreen.route)
                 }
                 .addOnCanceledListener {

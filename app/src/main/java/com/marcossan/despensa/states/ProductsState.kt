@@ -1,6 +1,6 @@
 package com.marcossan.despensa.states
 
-import com.marcossan.despensa.models.Product
+import com.marcossan.despensa.data.model.Product
 
 /**
  * Son los elementos que forman parte de los estados y a su vez, cuándo estos elementos reciban

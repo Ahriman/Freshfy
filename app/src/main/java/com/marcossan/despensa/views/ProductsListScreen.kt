@@ -2,11 +2,14 @@ package com.marcossan.despensa.views
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -30,18 +33,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.marcossan.despensa.R
-import com.marcossan.despensa.models.Product
-import com.marcossan.despensa.viewmodels.ProductsViewModel
+import com.marcossan.despensa.data.model.Product
+import com.marcossan.despensa.viewmodels.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductsListView(
+fun ProductsListScreen(
     navController: NavController,
-    viewModel: ProductsViewModel
+    viewModel: ProductViewModel
 ) {
 
     Scaffold(
@@ -70,15 +75,36 @@ fun ProductsListView(
             }
         }
     ) {
-        ContentListProductView(it, navController, viewModel)
+        if (viewModel.state.products.isNotEmpty()) {
+            ContentListProductScreen(it, navController, viewModel)
+            println("Test1")
+        } else {
+            println("Test2")
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 80.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "La lista de productos está vacía. \n\nAñade algún producto para comenzar con el control de fechas de caducidad.",
+                    modifier = Modifier.padding(horizontal = 15.dp),
+                    textAlign = TextAlign.Justify,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                )
+            }
+        }
+
     }
 }
 
 @Composable
-fun ContentListProductView(
+fun ContentListProductScreen(
     it: PaddingValues,
     navController: NavController,
-    viewModel: ProductsViewModel
+    viewModel: ProductViewModel
 ) {
     val state = viewModel.state
 
@@ -103,7 +129,7 @@ fun ContentListProductView(
 @Composable
 fun ProductListItem(
     navController: NavController,
-    viewModel: ProductsViewModel,
+    viewModel: ProductViewModel,
     product: Product,
     onOpenProductItem: () -> Unit,
 ) {
@@ -113,13 +139,16 @@ fun ProductListItem(
             .fillMaxWidth()
             .clickable { onOpenProductItem() }
     ) {
-//        AsyncImage(
-//            model = product.imageUrl,
-//            contentDescription = "",
-//            modifier = Modifier
-//                .padding(top = 15.dp)
-//                .size(80.dp)
-//        )
+        Box(modifier = Modifier.align(Alignment.CenterVertically)) {
+            AsyncImage(
+                model = product.imageUrl,
+                contentDescription = "",
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(80.dp),
+                alignment = Alignment.Center
+            )
+        }
         Column(modifier = Modifier.padding(16.dp)) {
             // Nombre
             Text(
@@ -127,18 +156,18 @@ fun ProductListItem(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
             )
-            // Marca
+            // TODO: Marca
             Text(
                 text = product.code,
             )
-//            // Fecha caducidad
-//            Text(
-//                text = product.expirationDate,
-//            )
-//            // Fecha añadido
-//            Text(
-//                text = product.dateAdded,
-//            )
+            // Fecha caducidad
+            Text(
+                text = product.expirationDate,
+            )
+            // Fecha añadido
+            Text(
+                text = product.dateAdded,
+            )
         }
 
         Row(
@@ -150,7 +179,10 @@ fun ProductListItem(
             IconButton(onClick = {
                 navController.navigate("edit/${product.id}/${product.code}/${product.name}")
             }) {
-                Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.edit))
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = stringResource(R.string.edit)
+                )
             }
             IconButton(onClick = {
                 viewModel.deleteProduct(product)

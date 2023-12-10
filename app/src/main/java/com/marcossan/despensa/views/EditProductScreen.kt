@@ -27,14 +27,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.marcossan.despensa.models.Product
-import com.marcossan.despensa.viewmodels.ProductsViewModel
+import com.marcossan.despensa.data.model.Product
+import com.marcossan.despensa.viewmodels.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditView(
+fun EditProductScreen(
     navController: NavController,
-    viewModel: ProductsViewModel,
+    viewModel: ProductViewModel,
     id: Int,
     code: String?,
     name: String?
@@ -64,7 +64,7 @@ fun EditView(
             )
         }
     ) {
-        ContentEditProductView(
+        ContentEditProductScreen(
             it = it,
             navController = navController,
             viewModel = viewModel,
@@ -76,10 +76,10 @@ fun EditView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentEditProductView(
+fun ContentEditProductScreen(
     it: PaddingValues,
     navController: NavController,
-    viewModel: ProductsViewModel,
+    viewModel: ProductViewModel,
     id: Int,
     code: String?,
     name: String?
@@ -116,7 +116,7 @@ fun ContentEditProductView(
 
         Button(
             onClick = {
-                val product = Product(id = id, code = code!!, name = name!!)
+                val product = Product(id = id, code = code!!, name = name!!, imageUrl = "") // TODO imageUrl
 
                 viewModel.updateProduct(product)
                 navController.popBackStack()

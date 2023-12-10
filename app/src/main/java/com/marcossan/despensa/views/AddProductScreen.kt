@@ -1,10 +1,9 @@
 package com.marcossan.despensa.views
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,17 +42,19 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.marcossan.despensa.BarcodeScanner
+import com.marcossan.despensa.utils.BarcodeScanner
 import com.marcossan.despensa.R
-import com.marcossan.despensa.models.Product
-import com.marcossan.despensa.viewmodels.ProductsViewModel
+import com.marcossan.despensa.viewmodels.ProductViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddView(navController: NavController, viewModel: ProductsViewModel) {
+fun AddProductScreen(
+    navController: NavController,
+    viewModel: ProductViewModel
+) {
 
     lateinit var barcodeScanner: BarcodeScanner
 
@@ -84,7 +85,7 @@ fun AddView(navController: NavController, viewModel: ProductsViewModel) {
             )
         }
     ) {
-        ContentAddProductView(
+        ContentAddProductScreen(
             it = it,
             navController = navController,
             viewModel = viewModel,
@@ -92,12 +93,13 @@ fun AddView(navController: NavController, viewModel: ProductsViewModel) {
     }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition", "CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentAddProductView(
+fun ContentAddProductScreen(
     it: PaddingValues,
     navController: NavController,
-    viewModel: ProductsViewModel,
+    viewModel: ProductViewModel,
     onScanBarcode: suspend () -> Unit,
 ) {
 
@@ -105,10 +107,10 @@ fun ContentAddProductView(
 
     var code by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
-//    var imageUrl by remember { mutableStateOf("") }
-//    var expirationDate by remember { mutableStateOf("") }
-//    var dateAdded by remember { mutableStateOf("") }
-//    var quantity by remember { mutableStateOf("") }
+    var imageUrl by remember { mutableStateOf("") }
+    var expirationDate by remember { mutableStateOf("") }
+    var dateAdded by remember { mutableStateOf("") }
+    var quantity by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -118,8 +120,13 @@ fun ContentAddProductView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
+//            value = viewModel.barcode,
             value = code,
             onValueChange = { code = it },
+//            onValueChange = { viewModel.onBarcodeChange(it) },
+//            onValueChange = { productBarcode ->
+//                viewModel.onBarcodeChange(productBarcode)
+//            },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp),
@@ -144,12 +151,17 @@ fun ContentAddProductView(
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text(text = "Nombre") },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
-                .padding(bottom = 15.dp)
+                .padding(bottom = 15.dp),
+            label = { Text(text = stringResource(R.string.product_name)) },
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences
+            ),
+//            isError = !viewModel.isValidProductName,
+            singleLine = true,
 
-        )
+            )
 
         val state = rememberDatePickerState()
         var showDialog by remember {
@@ -194,12 +206,14 @@ fun ContentAddProductView(
         }
 
         OutlinedTextField(
-            value = viewModel.productExpireDate,
-            onValueChange = { productExpireDate ->
-                viewModel.onProductExpireDateChange(
-                    productExpireDate
-                )
-            },
+//            value = viewModel.productExpireDate,
+            value = expirationDate,
+            onValueChange = { expirationDate = it },
+//            onValueChange = { productExpireDate ->
+//                viewModel.onProductExpireDateChange(
+//                    productExpireDate
+//                )
+//            },
 //                            readOnly = true,
 //                modifier = Modifier.weight(0.8f),
             modifier = Modifier
@@ -227,12 +241,14 @@ fun ContentAddProductView(
 
         OutlinedTextField(
 //                        value = productViewModel.productQuantity.replaceFirstChar { it.uppercase() },
-            value = viewModel.productQuantity,
-            onValueChange = { productQuantity ->
-                viewModel.onProductQuantityChange(
-                    productQuantity
-                )
-            },
+//            value = viewModel.productQuantity,
+            value = quantity,
+//            onValueChange = { productQuantity ->
+//                viewModel.onProductQuantityChange(
+//                    productQuantity
+//                )
+//            },
+            onValueChange = { quantity = it },
 //            modifier = Modifier.weight(0.8f),
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -245,23 +261,35 @@ fun ContentAddProductView(
             singleLine = true,
         )
 
+        // Usar este método para obtener un producto con los datos de la API - TODO: Quitar de aquí
+        // TODO: Lo estoy llamando 2 veces..
+        viewModel.getProduct(barcode = code) // TODO:
+
         Button(
             onClick = {
-                val product = Product(
-                    code = code,
-                    name = name,
-//                    imageUrl = imageUrl,
+//                val product = Product(
+//                    code = viewModel.product.code,
+//                    name = viewModel.product.name,
+//                    imageUrl = viewModel.product.imageUrl,
 //                    expirationDate = expirationDate,
 //                    dateAdded = dateAdded,
-//                    quantity = quantity,
-                )
+//                    quantity = viewModel.product.quantity,
+//                )
+                val product = viewModel.getProduct(code)
+                println("product = ${product}")
 
-
-                viewModel.addProduct(product)
+                viewModel.addProduct(viewModel.product)
                 navController.popBackStack()
             }
         ) {
             Text(text = "Agregar")
+        }
+
+        if (viewModel.isBarcodeScanned) {
+            scope.launch {
+                viewModel.getProductFromApi(viewModel.barcode)
+                viewModel.setIsBarcodeScanned(false)
+            }
         }
 
     }
