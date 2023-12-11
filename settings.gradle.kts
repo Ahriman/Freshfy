@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Despensa"
+rootProject.name = "Freshfy"
 include(":app")
  
