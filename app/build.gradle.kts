@@ -11,11 +11,11 @@ plugins {
 }
 
 android {
-    namespace = "com.marcossan.despensa"
+    namespace = "com.marcossan.freshfy"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.marcossan.despensa"
+        applicationId = "com.marcossan.freshfy"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
