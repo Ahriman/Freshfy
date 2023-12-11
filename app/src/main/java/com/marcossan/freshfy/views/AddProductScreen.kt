@@ -67,7 +67,7 @@ fun AddProductScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Agregar producto",
+                        text = stringResource(R.string.add_product),
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
@@ -78,7 +78,8 @@ fun AddProductScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack, contentDescription = "Atrás",
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
                             tint = Color.White
                         )
                     }
@@ -183,13 +184,13 @@ fun ContentAddProductScreen(
                 },
                 confirmButton = {
                     Button(onClick = { showDialog = false }) {
-                        Text(text = "Confirmar")
+                        Text(text = stringResource(R.string.confirm))
                     }
                 },
 //                modifier = Modifier.padding(15.dp),
                 dismissButton = {
                     OutlinedButton(onClick = { showDialog = false }) {
-                        Text(text = "Cancelar")
+                        Text(text = stringResource(R.string.cancel))
                     }
                 }
             ) {
@@ -266,7 +267,6 @@ fun ContentAddProductScreen(
         // Usar este método para obtener un producto con los datos de la API - TODO: Quitar de aquí
         // TODO: Lo estoy llamando 2 veces..
         productViewModel.getProduct(barcode = code) // TODO:
-        productViewModel.getProduct(barcode = code) // TODO:
 
         Button(
             onClick = {
@@ -284,7 +284,7 @@ fun ContentAddProductScreen(
                 navController.popBackStack()
             }
         ) {
-            Text(text = "Agregar") // TODO
+            Text(text = stringResource(id = R.string.add))
         }
 
         // La primera vez que entramos a la pantalla, no intenta cargar los datos

@@ -50,8 +50,6 @@ fun BarcodeScannerScreen(
                     productViewModel = productViewModel,
                     scannerUiState = productViewModel.scannerUiState
                 )
-                // TODO:
-//                Text(text = barcode ?: "NO LLEGA NINGUN CODIGO")
             }
         }
     }

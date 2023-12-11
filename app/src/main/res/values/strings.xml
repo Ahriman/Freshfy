@@ -11,4 +11,16 @@
     <string name="edit">Editar</string>
     <string name="delete">Eliminar</string>
     <string name="add">Agregar</string>
+    <string name="confirm">Confirmar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="back">Atrás</string>
+    <string name="add_product">Agregar producto</string>
+    <string name="barcode_result">Código de barras: %1$s</string>
+    <string name="name">Nombre</string>
+    <string name="edit_screen_title">Editar View</string>
+    <string name="code">Código: %1$s</string>
+    <string name="expire">Caduca: %1$s</string>
+    <string name="added">Añadido: %1$s</string>
+    <string name="image_content_description">Imagen del producto</string>
+    <string name="products_screen_list_empty_message">La lista de productos está vacía. \n\nAñade algún producto para comenzar con el control de fechas de caducidad.</string>
 </resources>
