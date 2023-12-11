@@ -266,6 +266,7 @@ fun ContentAddProductScreen(
         // Usar este método para obtener un producto con los datos de la API - TODO: Quitar de aquí
         // TODO: Lo estoy llamando 2 veces..
         productViewModel.getProduct(barcode = code) // TODO:
+        productViewModel.getProduct(barcode = code) // TODO:
 
         Button(
             onClick = {

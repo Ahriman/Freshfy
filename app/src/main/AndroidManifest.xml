@@ -23,7 +23,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Despensa"
+        android:theme="@style/Theme.Freshfy"
         tools:targetApi="31">
 
         <!-- Configure Google Play Services to automatically download
@@ -40,7 +40,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Despensa">
+            android:theme="@style/Theme.Freshfy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
