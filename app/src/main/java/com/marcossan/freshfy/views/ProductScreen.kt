@@ -57,7 +57,7 @@ fun ResultScreen(productViewModel: ProductViewModel, product: Product, modifier:
         modifier = modifier.padding(16.dp)
     ) {
         item {
-            Text(text = "Código de barras: ${product.code}")
+            Text(text = stringResource(R.string.barcode_result, product.code))
             Text(text = "Nombre: ${product.name}")
             Text(text = "Fecha de caducidad: ${product.expirationDate}")
             Text(text = "Cantidad: ${product.quantity}")

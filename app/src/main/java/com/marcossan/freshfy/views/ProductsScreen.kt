@@ -88,7 +88,7 @@ fun ProductsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "La lista de productos está vacía. \n\nAñade algún producto para comenzar con el control de fechas de caducidad.",// TODO
+                    text = stringResource(R.string.products_screen_list_empty_message),// TODO
                     modifier = Modifier.padding(horizontal = 15.dp),
                     textAlign = TextAlign.Justify,
                     fontWeight = FontWeight.SemiBold,
@@ -140,7 +140,7 @@ fun ProductListItem(
         Box(modifier = Modifier.align(Alignment.CenterVertically)) {
             AsyncImage(
                 model = product.imageUrl,
-                contentDescription = "Imagen del producto",
+                contentDescription = stringResource(R.string.image_content_description),
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .size(80.dp),
@@ -156,15 +156,15 @@ fun ProductListItem(
             )
             // TODO: Marca
             Text(
-                text = "Código: ${product.code}",
+                text = stringResource(R.string.code, product.code),
             )
             // Fecha caducidad
             Text(
-                text = "Caduca: ${product.expirationDate}",
+                text = stringResource(R.string.expire, product.expirationDate),
             )
             // Fecha añadido
             Text(
-                text = "Añadido: ${product.dateAdded}",
+                text = stringResource(R.string.added, product.dateAdded),
             )
         }
 

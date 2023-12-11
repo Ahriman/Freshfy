@@ -24,9 +24,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 
@@ -45,7 +47,7 @@ fun EditProductScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Editar View",
+                        text = stringResource(R.string.edit_screen_title),
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
@@ -56,7 +58,7 @@ fun EditProductScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack, contentDescription = "Atrás",
+                            imageVector = Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back),
                             tint = Color.White
                         )
                     }
@@ -97,7 +99,7 @@ fun ContentEditProductScreen(
         OutlinedTextField(
             value = code ?: "",
             onValueChange = { code = it },
-            label = { Text(text = "Código de barras") },
+            label = { Text(text = stringResource(R.string.barcode_result)) },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp)
@@ -107,7 +109,7 @@ fun ContentEditProductScreen(
         OutlinedTextField(
             value = name ?: "",
             onValueChange = { name = it },
-            label = { Text(text = "Nombre") },
+            label = { Text(text = stringResource(R.string.name)) },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp)
@@ -122,7 +124,7 @@ fun ContentEditProductScreen(
                 navController.popBackStack()
             }
         ) {
-            Text(text = "Editar")
+            Text(text = stringResource(R.string.edit))
         }
     }
 }
