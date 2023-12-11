@@ -117,6 +117,10 @@ class ProductViewModel @Inject constructor(
         _barcode = barcode
     }
 
+    fun onProductNameChange(productName: String) {
+        _productName = productName.replaceFirstChar { it.uppercase() }
+    }
+
     fun onScannedBarcode(barcode: String) {
         _barcode = barcode
         _isBarcodeScanned = true

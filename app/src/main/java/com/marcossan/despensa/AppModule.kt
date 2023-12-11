@@ -24,7 +24,7 @@ object AppModule {
                 ProductsDatabase::class.java,
                 "db_products")
                 .build()
-        val dao = database.productsDao()
+        val dao = database.productsDao() // TODO
         return dao
     }
 

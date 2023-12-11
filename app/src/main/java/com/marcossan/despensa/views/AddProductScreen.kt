@@ -126,12 +126,7 @@ fun ContentAddProductScreen(
 
     val scope = rememberCoroutineScope()
 
-    var code by remember { mutableStateOf(code) }
-    var name by remember { mutableStateOf("") }
-    var imageUrl by remember { mutableStateOf("") }
-    var expirationDate by remember { mutableStateOf("") }
-    var dateAdded by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
+    var code by remember { mutableStateOf(code) } // TODO
 
     Column(
         modifier = Modifier
@@ -170,8 +165,10 @@ fun ContentAddProductScreen(
         )
 
         OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
+            value = productViewModel.productName,
+            onValueChange = { productName ->
+                productViewModel.onProductNameChange(productName)
+            },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp),
@@ -227,14 +224,12 @@ fun ContentAddProductScreen(
         }
 
         OutlinedTextField(
-//            value = viewModel.productExpireDate,
-            value = expirationDate,
-            onValueChange = { expirationDate = it },
-//            onValueChange = { productExpireDate ->
-//                viewModel.onProductExpireDateChange(
-//                    productExpireDate
-//                )
-//            },
+            value = productViewModel.productExpireDate,
+            onValueChange = { productExpireDate ->
+                productViewModel.onProductExpireDateChange(
+                    productExpireDate
+                )
+            },
 //                            readOnly = true,
 //                modifier = Modifier.weight(0.8f),
             modifier = Modifier
@@ -261,15 +256,14 @@ fun ContentAddProductScreen(
         )
 
         OutlinedTextField(
-//                        value = productViewModel.productQuantity.replaceFirstChar { it.uppercase() },
-//            value = viewModel.productQuantity,
-            value = quantity,
-//            onValueChange = { productQuantity ->
-//                viewModel.onProductQuantityChange(
-//                    productQuantity
-//                )
-//            },
-            onValueChange = { quantity = it },
+            //TODO Impedir que se pegue texto
+//            value = productViewModel.productQuantity.replaceFirstChar { it.uppercase() },
+            value = productViewModel.productQuantity,
+            onValueChange = { productQuantity ->
+                productViewModel.onProductQuantityChange(
+                    productQuantity
+                )
+            },
 //            modifier = Modifier.weight(0.8f),
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -297,10 +291,9 @@ fun ContentAddProductScreen(
 //                    dateAdded = dateAdded,
 //                    quantity = viewModel.product.quantity,
 //                )
-                val product = productViewModel.getProduct(code)
-                println("product = ${product}")
+                val product = productViewModel.getProduct(code) // TODO
 
-//                productViewModel.addProduct(productViewModel.product)
+                productViewModel.addProduct(productViewModel.product)
                 navController.popBackStack()
             }
         ) {

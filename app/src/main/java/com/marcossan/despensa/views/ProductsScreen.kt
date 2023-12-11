@@ -53,7 +53,7 @@ fun ProductsScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(text = "Despensa", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(id = R.string.app_name), color = Color.White, fontWeight = FontWeight.Bold)
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -88,7 +88,7 @@ fun ProductsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "La lista de productos está vacía. \n\nAñade algún producto para comenzar con el control de fechas de caducidad.",
+                    text = "La lista de productos está vacía. \n\nAñade algún producto para comenzar con el control de fechas de caducidad.",// TODO
                     modifier = Modifier.padding(horizontal = 15.dp),
                     textAlign = TextAlign.Justify,
                     fontWeight = FontWeight.SemiBold,
@@ -183,7 +183,7 @@ fun ProductListItem(
                 )
             }
             IconButton(onClick = {
-//                viewModel.deleteProduct(product)
+                viewModel.deleteProduct(product)
             }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
