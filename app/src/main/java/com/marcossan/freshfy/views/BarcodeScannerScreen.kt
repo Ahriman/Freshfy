@@ -43,7 +43,7 @@ fun BarcodeScannerScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            productViewModel.getProduct(barcode = barcode)
+            productViewModel.getProductFromApi(barcode = barcode)
             Column {
                 ProductScreen(
                     navController = navController,

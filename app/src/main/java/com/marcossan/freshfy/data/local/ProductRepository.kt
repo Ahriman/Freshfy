@@ -20,8 +20,16 @@ class ProductRepository(
         return productDao.getAll()
     }
 
-    suspend fun getProduct(id: Int): Flow<Product> {
-        return productDao.getProduct(id)
+    suspend fun getProduct(barcode: String): Flow<Product> {
+        return productDao.getProduct(barcode)
+    }
+
+    suspend fun getProduct2(barcode: String): Product {
+        return productDao.getProduct2(barcode)
+    }
+
+    suspend fun getProductsThatExpiredInDays(days: Int): Flow<List<Product>> {
+        return productDao.getAll()
     }
 
     suspend fun updateProduct(product: Product) {

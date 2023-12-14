@@ -4,13 +4,18 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Snackbar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
@@ -43,6 +48,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.marcossan.freshfy.R
+import com.marcossan.freshfy.data.model.Product
+import com.marcossan.freshfy.navigation.Screens
 import com.marcossan.freshfy.utils.BarcodeScanner
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import kotlinx.coroutines.launch
@@ -166,7 +173,7 @@ fun ContentAddProductScreen(
 //            isError = !viewModel.isValidProductName,
             singleLine = true,
 
-            )
+        )
 
         val state = rememberDatePickerState()
         var showDialog by remember {
@@ -268,6 +275,17 @@ fun ContentAddProductScreen(
         // TODO: Lo estoy llamando 2 veces..
         productViewModel.getProduct(barcode = code) // TODO:
 
+        val context = LocalContext.current // TODO PARA NOTIFICACION
+        Button(
+            onClick = {
+                // MOVER
+                productViewModel.sendNotificacion(context = context)
+            }
+        ) {
+            Text(text = "Enviar notificación")
+        }
+
+        var errorMessage : String
         Button(
             onClick = {
 //                val product = Product(
@@ -278,9 +296,30 @@ fun ContentAddProductScreen(
 //                    dateAdded = dateAdded,
 //                    quantity = viewModel.product.quantity,
 //                )
-                val product = productViewModel.getProduct(code) // TODO
+//                val product = productViewModel.getProduct(code) // TODO
 
-                productViewModel.addProduct(productViewModel.product)
+                val product = Product(
+                    code = productViewModel.barcode,
+                    name = productViewModel.productName,
+                    imageUrl = productViewModel.productUrl,
+                    expirationDate = productViewModel.productExpireDate,
+                    dateAdded = "lala",
+                    quantity = productViewModel.productQuantity
+                )
+
+//                productViewModel.addProduct(productViewModel.product)
+                // TODO
+                try {
+                    productViewModel.addProduct(product = product)
+                } catch (e: Exception) {
+                    // SnackBar
+                    errorMessage = e.message.toString()
+                }
+
+                // MOVER
+//                productViewModel.sendNotificacion(context = context)
+
+
                 navController.popBackStack()
             }
         ) {
@@ -294,6 +333,30 @@ fun ContentAddProductScreen(
                 productViewModel.getProductFromApi(productViewModel.barcode)
                 productViewModel.setIsBarcodeScanned(false)
             }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        Button(
+            onClick = {
+                navController.navigate(Screens.Notification.route)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones")
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Ver Notificaciones")
         }
 
     }

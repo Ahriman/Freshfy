@@ -58,9 +58,10 @@ fun ResultScreen(productViewModel: ProductViewModel, product: Product, modifier:
     ) {
         item {
             Text(text = stringResource(R.string.barcode_result, product.code))
-            Text(text = "Nombre: ${product.name}")
+            Text(text = stringResource(R.string.name) + ": ${product.name}")
+            // TODO
             Text(text = "Fecha de caducidad: ${product.expirationDate}")
-            Text(text = "Cantidad: ${product.quantity}")
+            Text(text = "Cantidad: "+ ": ${product.quantity}")
             // TODO: Arreglar fecha, porque se actualiza al hacer scroll
             Text(text = "Añadido el día: ${product.dateAdded}")
 

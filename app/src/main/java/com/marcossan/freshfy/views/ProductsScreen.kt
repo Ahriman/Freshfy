@@ -53,7 +53,11 @@ fun ProductsScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(text = stringResource(id = R.string.app_name), color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -77,9 +81,7 @@ fun ProductsScreen(
     ) {
         if (viewModel.state.products.isNotEmpty()) {
             ContentProductsScreen(it, navController, viewModel)
-            println("Test1")
         } else {
-            println("Test2")
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -88,7 +90,7 @@ fun ProductsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = stringResource(R.string.products_screen_list_empty_message),// TODO
+                    text = stringResource(R.string.products_screen_list_empty_message),
                     modifier = Modifier.padding(horizontal = 15.dp),
                     textAlign = TextAlign.Justify,
                     fontWeight = FontWeight.SemiBold,
@@ -137,7 +139,9 @@ fun ProductListItem(
             .fillMaxWidth()
             .clickable { onOpenProductItem() }
     ) {
-        Box(modifier = Modifier.align(Alignment.CenterVertically)) {
+        Box(modifier = Modifier
+            .weight(2f)
+            .align(Alignment.CenterVertically)) {
             AsyncImage(
                 model = product.imageUrl,
                 contentDescription = stringResource(R.string.image_content_description),
@@ -147,7 +151,11 @@ fun ProductListItem(
                 alignment = Alignment.Center
             )
         }
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .weight(5f)
+                .padding(vertical = 12.dp)
+        ) {
             // Nombre
             Text(
                 text = product.name,
@@ -171,11 +179,13 @@ fun ProductListItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f)
+                .padding(horizontal = 8.dp)
                 .align(alignment = Alignment.CenterVertically),
             horizontalAlignment = Alignment.End
         ) {
             IconButton(onClick = {
-                navController.navigate("edit/${product.id}/${product.code}/${product.name}")
+                navController.navigate("edit/${product.id}/${product.code}/${product.name}/${product.expirationDate}/${product.quantity}")
             }) {
                 Icon(
                     imageVector = Icons.Default.Edit,

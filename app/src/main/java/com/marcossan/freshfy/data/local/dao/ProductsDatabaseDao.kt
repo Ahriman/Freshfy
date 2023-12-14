@@ -13,8 +13,14 @@ interface ProductsDatabaseDao {
     @Query("SELECT * FROM products")
     fun getAll(): Flow<List<Product>>
 
-    @Query("SELECT * FROM products WHERE id = :id")
-    fun getProduct(id: Int): Flow<Product> // getProductById
+    @Query("SELECT * FROM products WHERE id = :barcode")
+    fun getProduct(barcode: String): Flow<Product> // getProductById
+
+    @Query("SELECT * FROM products WHERE id = :barcode")
+    fun getProduct2(barcode: String): Product // getProductById
+
+    @Query("SELECT * FROM products WHERE expirationDate >= :days")
+    fun getProductsThatExpiredInDays(days: Int): Flow<List<Product>>
 
     @Insert
     suspend fun addProduct(product: Product) // Insert

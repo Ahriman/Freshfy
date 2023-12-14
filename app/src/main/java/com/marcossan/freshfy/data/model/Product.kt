@@ -3,6 +3,7 @@ package com.marcossan.freshfy.data.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Entidad products de la base de datos local

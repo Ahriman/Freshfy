@@ -1,18 +1,35 @@
 package com.marcossan.freshfy.viewmodels
 
 import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.database.sqlite.SQLiteConstraintException
+import androidx.compose.material.Snackbar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.google.gson.stream.JsonReader
+import com.marcossan.freshfy.FreshfyApp
+import com.marcossan.freshfy.MainActivity
+import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
 import com.marcossan.freshfy.states.ProductsState
 import com.marcossan.freshfy.data.network.ProductApiService
 import com.marcossan.freshfy.data.network.ProductJson
 import com.marcossan.freshfy.data.local.ProductRepository
+import com.marcossan.freshfy.states.NotificationState
+import com.marcossan.freshfy.states.ProductState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.MissingFieldException
@@ -36,11 +53,14 @@ sealed interface ScannerUiState {
 class ProductViewModel @Inject constructor(
 //    private val dao: ProductsDatabaseDao
     private val productRepository: ProductRepository
-): ViewModel()  {
+) : ViewModel() {
 
     // ROOM start
 
     var state by mutableStateOf(ProductsState())
+        private set
+
+    var productState by mutableStateOf(ProductState())
         private set
 
     // Comportamiento cuándo se inicie el ViewModel
@@ -54,21 +74,148 @@ class ProductViewModel @Inject constructor(
         }
     }
 
+    @Throws(Exception::class)
     fun addProduct(product: Product) = viewModelScope.launch {
-        println("product = $product")
+        println("product = $product") // TODO QUITAR
         productRepository.addProduct(product)
     }
 
     fun updateProduct(product: Product) = viewModelScope.launch {
         productRepository.updateProduct(product)
+        clearData()
     }
 
     fun deleteProduct(product: Product) = viewModelScope.launch {
         productRepository.deleteProduct(product)
     }
 
+    fun getProduct(barcode: String) = viewModelScope.launch {
+        val e = productRepository.getProduct(barcode)
+        e.collectLatest { product ->
+            _product = product
+        }
+
+
+        viewModelScope.launch {
+            productRepository.getProduct(barcode).collectLatest {
+                productState = productState.copy(
+                    product = it
+                )
+            }
+        }
+    }
+
+
+    fun scheduleNotification(days: Int, context: Context) = viewModelScope.launch {
+
+        // Pasar días a milisegundos
+        // Obtener fecha actual en ms
+        // Obtener direfencia y con ella buscar en BDD con getProductsThatExpiredInDays
+
+        productRepository.getProductsThatExpiredInDays(days)
+
+//
+//
+//        val tiempoRestante = calcularTiempoRestante(fecha.fecha)
+//
+//        if (tiempoRestante > 0) {
+//            // Configura y muestra la notificación utilizando el servicio de notificaciones de Android
+//            // Puedes utilizar NotificationManager y otras clases según tus necesidades
+//        }
+
+
+
+//        val notificationManager = context.getSystemService(NotificationManager::class.java)
+//        val notification = Notification.Builder(context, FreshfyApp.CHANEL_ID)
+//            .setContentTitle(state.name)
+//            .setContentText("Esto es una notificación")
+//            .setSmallIcon(R.drawable.logo_notificacion)
+//            .setAutoCancel(true)
+//            .build()
+//        notificationManager.notify(state.name.hashCode(), notification)
+
+
+
+
+
+    }
+    // Falta solicitar permisos al usuario para que funcione
+    // TODO: https://www.youtube.com/watch?v=7RUCSOsp2jQ
+    // https://www.youtube.com/watch?v=imFJZ4Kbv_g
+
+    fun sendNotificacion(context: Context) {
+
+//        val navcontroller = NavController(context = context)
+//        navcontroller.graph.apply {
+//            addNode
+//        }
+
+        // TODO: Hacer que vaya a la pantalla del producto notificado
+        val intent = Intent(context, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+//            PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+
+        val notificationManager = context.getSystemService(NotificationManager::class.java)
+        val notification = Notification.Builder(context, FreshfyApp.CHANNEL_ID)
+            .setContentTitle(notificationState.name)
+            .setContentText("A tu producto [nombre_producto] le quedan [X] días para caducar. eer" +notificationState.name.hashCode())
+            .setSmallIcon(R.drawable.logo_notificacion)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true) // Permite que la notifiación sea deslizable
+            .build()
+
+        // TODO: Agrupar notificaciones por producto
+        notificationManager.notify(notificationState.name.hashCode(), notification) //notificationState.name.hashCode()
+
+    }
+
+    var notificationState by mutableStateOf(NotificationState())
+        private set
+
+    fun changeName(text: String) {
+        notificationState = notificationState.copy(
+            name = text
+        )
+    }
+
     // ROOM end
 
+
+//    suspend fun getProductByBarcode(barcode: String): Product? {
+//        return state.products.find { it.code == barcode }
+//    }
+
+    // Function to get product by barcode
+    suspend fun getProductByBarcode(barcode: String): Flow<Product> {
+        return productRepository.getProduct(barcode)
+    }
+
+    suspend fun getProductByBarcode2(barcode: String): Product {
+        return productRepository.getProduct2(barcode)
+    }
+
+
+    private fun clearData() {
+        _barcode = ""
+        _productName = ""
+        _productUrl = ""
+        _productExpireDate = ""
+        _productQuantity = ""
+
+        _product = Product(
+            code = _barcode,
+            name = _productName,
+            imageUrl = _productUrl,
+            expirationDate = _productExpireDate,
+            quantity = _productQuantity
+        )
+    }
 
     var scannerUiState: ScannerUiState by mutableStateOf(ScannerUiState.Loading)
         private set
@@ -76,7 +223,7 @@ class ProductViewModel @Inject constructor(
     suspend fun getProductFromApi(barcode: String) {
         val productJson: ProductJson
         try {
-            productJson= ProductApiService.OpenFoodFactsApi.retrofitService.getProduct(
+            productJson = ProductApiService.OpenFoodFactsApi.retrofitService.getProduct(
                 barcode = barcode ?: _barcode
             )
             val product = getProductFromProductJson(productJson)
@@ -105,12 +252,36 @@ class ProductViewModel @Inject constructor(
     val productQuantity get() = _productQuantity
 
 
-
     private var _isBarcodeScanned by mutableStateOf(false)
     val isBarcodeScanned get() = _isBarcodeScanned
 
     private var _isValidProductQuantity by mutableStateOf(false)
     val isValidProductQuantity get() = _isValidProductQuantity
+
+
+    fun onProductChange(product: MutableStateFlow<Product?>) {
+        _productFlow = product
+    }
+
+//    fun onProductChange(barcode: Flow<Product>?) {
+//
+//        viewModelScope.launch {
+//            productRepository.getProduct(barcode).collectLatest {
+////                state = state.copy(
+////                    product = it
+////                )
+//                _product = _product.copy(
+//                    id = it.id,
+//                    code = it.code,
+//                    name = it.name,
+//                    imageUrl = it.imageUrl,
+//                    expirationDate = it.expirationDate,
+//                    dateAdded = it.dateAdded,
+//                    quantity = it.quantity
+//                )
+//            }
+//        }
+//    }
 
 
     fun onBarcodeChange(barcode: String) {
@@ -146,6 +317,9 @@ class ProductViewModel @Inject constructor(
 
     val product get() = _product
 
+    private var _productFlow = MutableStateFlow<Product?>(null)
+    val productFlow get() = _productFlow.asStateFlow()
+
     fun setIsBarcodeScanned(enable: Boolean) {
         _isBarcodeScanned = enable
     }
@@ -154,7 +328,7 @@ class ProductViewModel @Inject constructor(
      * Gets Product information from the Open Food Fatcs API Retrofit service and updates the
      * [Product] [List] [MutableList].
      */
-    fun getProduct(barcode: String?): Product {
+    fun getProductFromApi(barcode: String?): Product {
 
         viewModelScope.launch {
             scannerUiState =
@@ -250,6 +424,25 @@ class ProductViewModel @Inject constructor(
         } catch (e: ParseException) {
             return false
         }
+    }
+
+    // Métodos para notificaciones
+//    fun programarNotificacion(days: Int) {
+//
+//        productRepository.getProductsThatExpiredInDays(days)
+//
+//        val tiempoRestante = calcularTiempoRestante(fecha.fecha)
+//
+//        if (tiempoRestante > 0) {
+//            // Configura y muestra la notificación utilizando el servicio de notificaciones de Android
+//            // Puedes utilizar NotificationManager y otras clases según tus necesidades
+//        }
+//    }
+
+    private fun calcularTiempoRestante(fechaMillis: Long): Long {
+        // Calcula el tiempo restante hasta la fecha en milisegundos
+        val tiempoActual = System.currentTimeMillis()
+        return fechaMillis - tiempoActual
     }
 
 }
