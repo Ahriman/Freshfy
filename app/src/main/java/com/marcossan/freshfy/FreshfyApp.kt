@@ -24,7 +24,7 @@ class FreshfyApp : Application() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.notification_product_expire_date),
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_HIGH,
             )
 
             // TODO: Cambiar el nombre a uno más descritivo, esto sale luego en info de la app

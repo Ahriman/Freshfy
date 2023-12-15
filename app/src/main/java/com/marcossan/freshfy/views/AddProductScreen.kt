@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Snackbar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
@@ -31,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +51,7 @@ import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
 import com.marcossan.freshfy.navigation.Screens
 import com.marcossan.freshfy.utils.BarcodeScanner
+import com.marcossan.freshfy.utils.Utils
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -61,13 +62,16 @@ import java.time.ZoneId
 fun AddProductScreen(
     navController: NavController,
     productViewModel: ProductViewModel,
-    code: String?
+    barcode: String?
 ) {
 
     lateinit var barcodeScanner: BarcodeScanner
 
     val context = LocalContext.current
     barcodeScanner = BarcodeScanner(context, navController)
+
+
+
 
     Scaffold(
         topBar = {
@@ -99,13 +103,13 @@ fun AddProductScreen(
             navController = navController,
             productViewModel = productViewModel,
             onScanBarcode = { barcodeScanner.startScan(productViewModel) },
-            code = code ?: ""
+            barcode = barcode ?: ""
         )
 //            onScanBarcode = { barcodeScanner.startScan() })
     }
 }
 
-@SuppressLint("StateFlowValueCalledInComposition", "CoroutineCreationDuringComposition")
+//@SuppressLint("StateFlowValueCalledInComposition", "CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentAddProductScreen(
@@ -113,8 +117,23 @@ fun ContentAddProductScreen(
     navController: NavController,
     productViewModel: ProductViewModel,
     onScanBarcode: suspend () -> Unit,
-    code: String
+    barcode: String
 ) {
+
+    // Use LaunchedEffect to perform a side effect when the composable is (re)composed
+    LaunchedEffect(true) {// Con true se ejecuta la primera vez que se compose la pantalla
+        // Perform some asynchronous operation here, e.g., fetch data from a repository
+        //            val data = fetchDataFromRepository()
+
+        // Update the UI with the fetched data
+        // This will only run once when the composable is initially composed or re-composed
+        // due to the key parameter (true in this example)
+
+        // Limpiar campos
+        productViewModel.clearData()
+
+
+    }
 
     val scope = rememberCoroutineScope()
 
@@ -136,6 +155,12 @@ fun ContentAddProductScreen(
 //            onValueChange = { productViewModel.onBarcodeChange(it) },
             onValueChange = { productBarcode ->
                 productViewModel.onBarcodeChange(productBarcode)
+                // En cada cambio del input, buscar el nombre del producto y añadirlo al campo nombre
+                if (productBarcode.isNotEmpty()) {
+                    scope.launch {
+                        productViewModel.getProductFromApi(productBarcode)
+                    }
+                }
             },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -173,7 +198,7 @@ fun ContentAddProductScreen(
 //            isError = !viewModel.isValidProductName,
             singleLine = true,
 
-        )
+            )
 
         val state = rememberDatePickerState()
         var showDialog by remember {
@@ -273,19 +298,34 @@ fun ContentAddProductScreen(
 
         // Usar este método para obtener un producto con los datos de la API - TODO: Quitar de aquí
         // TODO: Lo estoy llamando 2 veces..
-        productViewModel.getProduct(barcode = code) // TODO:
+        productViewModel.getProduct(barcode = barcode) // TODO:
+
+        //TODO
+        val product = Product(
+            code = productViewModel.barcode,
+            name = productViewModel.productName,
+            imageUrl = productViewModel.productUrl,
+            expirationDate = Utils.getTimeMillisOfStringDate(productViewModel.productExpireDate),
+            dateAdded = System.currentTimeMillis().toString(), // TODO
+            expirationDateInString = productViewModel.productExpireDate,
+            quantity = productViewModel.productQuantity
+        )
+
+        scope.launch {
+            productViewModel.onProductChange(product = product)
+        }
 
         val context = LocalContext.current // TODO PARA NOTIFICACION
         Button(
             onClick = {
                 // MOVER
-                productViewModel.sendNotificacion(context = context)
+                productViewModel.sendNotificacion(context = context, product = product)
             }
         ) {
             Text(text = "Enviar notificación")
         }
 
-        var errorMessage : String
+        var errorMessage: String
         Button(
             onClick = {
 //                val product = Product(
@@ -298,12 +338,14 @@ fun ContentAddProductScreen(
 //                )
 //                val product = productViewModel.getProduct(code) // TODO
 
+                // TODO
                 val product = Product(
                     code = productViewModel.barcode,
                     name = productViewModel.productName,
                     imageUrl = productViewModel.productUrl,
-                    expirationDate = productViewModel.productExpireDate,
+                    expirationDate = Utils.getTimeMillisOfStringDate(productViewModel.productExpireDate),
                     dateAdded = "lala",
+                    expirationDateInString = productViewModel.productExpireDate,
                     quantity = productViewModel.productQuantity
                 )
 
@@ -359,5 +401,13 @@ fun ContentAddProductScreen(
             Text("Ver Notificaciones")
         }
 
+
+
+
     }
 }
+
+
+
+
+

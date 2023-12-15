@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
+import com.marcossan.freshfy.utils.Utils
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -168,7 +169,7 @@ fun ProductListItem(
             )
             // Fecha caducidad
             Text(
-                text = stringResource(R.string.expire, product.expirationDate),
+                text = stringResource(R.string.expire, product.expirationDateInString),
             )
             // Fecha añadido
             Text(
@@ -185,7 +186,7 @@ fun ProductListItem(
             horizontalAlignment = Alignment.End
         ) {
             IconButton(onClick = {
-                navController.navigate("edit/${product.id}/${product.code}/${product.name}/${product.expirationDate}/${product.quantity}")
+                navController.navigate("edit/${product.id}/${product.code}") // /${product.name}/${product.expirationDate}/${product.quantity}
             }) {
                 Icon(
                     imageVector = Icons.Default.Edit,

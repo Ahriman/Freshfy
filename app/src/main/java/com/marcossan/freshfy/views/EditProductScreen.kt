@@ -26,10 +26,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +48,8 @@ import androidx.navigation.NavController
 import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
 import com.marcossan.freshfy.utils.BarcodeScanner
+import com.marcossan.freshfy.utils.Utils
+import com.marcossan.freshfy.viewmodels.EditProductViewModel
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -55,12 +60,14 @@ import java.time.ZoneId
 fun EditProductScreen(
     navController: NavController,
     productViewModel: ProductViewModel,
+    editProductViewModel: EditProductViewModel,
     id: Int,
     barcode: String?,
-    name: String?,
-    expirationDate: String?,
-    quantity: String?,
+//    name: String?,
+//    expirationDate: Long?,
+//    quantity: String?,
 ) {
+
 
     lateinit var barcodeScanner: BarcodeScanner
 
@@ -96,12 +103,13 @@ fun EditProductScreen(
             it = it,
             navController = navController,
             productViewModel = productViewModel,
+            editProductViewModel = editProductViewModel,
             onScanBarcode = { barcodeScanner.startScan(productViewModel) },
             id = id,
             barcode = barcode,
-            name = name,
-            expirationDate = expirationDate,
-            quantity = quantity,
+//            name = name,
+//            expirationDate = expirationDate,
+//            quantity = quantity,
         )
     }
 }
@@ -113,21 +121,36 @@ fun ContentEditProductScreen(
     it: PaddingValues,
     navController: NavController,
     productViewModel: ProductViewModel,
+    editProductViewModel: EditProductViewModel,
     onScanBarcode: suspend () -> Unit,
     id: Int,
     barcode: String?,
-    name: String?,
-    expirationDate: String?,
-    quantity: String?,
+//    name: String?,
+//    expirationDate: Long?,
+//    quantity: String?,
 ) {
-    var code by remember { mutableStateOf(barcode) } // TODO
-    var name by remember { mutableStateOf(name) } // TODO
-    var expirationDate by remember { mutableStateOf(expirationDate) } // TODO
-    var quantity by remember { mutableStateOf(quantity) } // TODO
-
     val scope = rememberCoroutineScope()
 
-    println("Código: $code")
+    scope.launch {
+        editProductViewModel.getProduct(barcode = barcode ?: "")
+    }
+
+    val newProduct by rememberUpdatedState(newValue = editProductViewModel.product)
+
+
+
+    var barcode by remember { mutableStateOf(newProduct.code) } // TODO
+    var name by remember { mutableStateOf(newProduct.name) } // TODO
+    var expirationDate by remember { mutableStateOf(Utils.getStringDateFromMillis(newProduct.expirationDate)) } // TODO
+    var quantity by remember { mutableStateOf(newProduct.quantity) } // TODO
+
+
+    // Obtener datos producto
+//    productViewModel.getProduct(barcode ?: "")
+
+
+
+    println("Código: $barcode")
 //    if (code != null) {
 //        LaunchedEffect(code) {
 //            productViewModel.getProduct(code)
@@ -140,7 +163,6 @@ fun ContentEditProductScreen(
 //        scope.launch { productViewModel.getProductByBarcode(code) }
 //
 //    }
-    productViewModel.product
 
     // Trigger the search when the barcode changes
 //    LaunchedEffect(code) {
@@ -161,12 +183,30 @@ fun ContentEditProductScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
-            value = productViewModel.barcode,
+//            value = if (newProduct.code.isNullOrBlank()) {
+//                productViewModel.barcode
+//            } else {
+//                newProduct.code
+//            },
+            value = barcode,
 //            value = code,
 //            onValueChange = { code = it },
 //            onValueChange = { productViewModel.onBarcodeChange(it) },
+//            onValueChange = { productBarcode ->
+//                if (newProduct.code.isBlank()) {
+//                    productViewModel.onBarcodeChange(productBarcode)
+//                } else {
+//                    newProduct.code = productBarcode
+//                }
+//            },
             onValueChange = { productBarcode ->
-                productViewModel.onBarcodeChange(productBarcode)
+                barcode = productBarcode
+                // En cada cambio del input, buscar el nombre del producto y añadirlo al campo nombre
+                if (productBarcode.isNotEmpty()) {
+                    scope.launch {
+                        productViewModel.getProductFromApi(productBarcode)
+                    }
+                }
             },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -190,9 +230,13 @@ fun ContentEditProductScreen(
         )
 
         OutlinedTextField(
-            value = productViewModel.productName,
+//            value = productViewModel.productName,
+//            onValueChange = { productName ->
+//                productViewModel.onProductNameChange(productName)
+//            },
+            value = name,
             onValueChange = { productName ->
-                productViewModel.onProductNameChange(productName)
+                name = productName
             },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -243,6 +287,7 @@ fun ContentEditProductScreen(
                         "${localDate.dayOfMonth}/${localDate.monthValue}/${localDate.year}"
 //                    productViewModel.onProductExpireDateChange(dateExpired)
                     productViewModel.onProductExpireDateChange(dateExpired)
+                    expirationDate = dateExpired
                 }
                 DatePicker(state = state)
             }
@@ -250,8 +295,18 @@ fun ContentEditProductScreen(
         }
 
         OutlinedTextField(
-            value = expirationDate ?: "",
-            onValueChange = { expirationDate = it },
+//            value = Utils.getStringDateFromMillis(expirationDate ?: 0L),
+//            onValueChange = { expirationDate = Utils.getTimeMillisOfStringDate(it) },
+//            value = productViewModel.productExpireDate,
+//            onValueChange = { productExpireDate ->
+//                productViewModel.onProductExpireDateChange(
+//                    productExpireDate
+//                )
+//            },
+            value = expirationDate,
+            onValueChange = { productExpireDate ->
+                expirationDate = productExpireDate
+            },
 //            value = productViewModel.productExpireDate,
 //            onValueChange = { productExpireDate ->
 //                productViewModel.onProductExpireDateChange(
@@ -286,11 +341,15 @@ fun ContentEditProductScreen(
         OutlinedTextField(
             //TODO Impedir que se pegue texto
 //            value = productViewModel.productQuantity.replaceFirstChar { it.uppercase() },
-            value = productViewModel.productQuantity,
+//            value = productViewModel.productQuantity,
+//            onValueChange = { productQuantity ->
+//                productViewModel.onProductQuantityChange(
+//                    productQuantity
+//                )
+//            },
+            value = quantity,
             onValueChange = { productQuantity ->
-                productViewModel.onProductQuantityChange(
-                    productQuantity
-                )
+                quantity = productQuantity
             },
 //            modifier = Modifier.weight(0.8f),
             modifier = Modifier
@@ -305,17 +364,21 @@ fun ContentEditProductScreen(
             singleLine = true,
         )
 
+        // Botón para guardar los cambios
+
         Button(
             onClick = {
 //                val product = Product(id = id, code = code!!, name = name!!, imageUrl = "") // TODO imageUrl
                 val product = Product(
                     id = id,
-                    code = productViewModel.barcode,
-                    name = productViewModel.productName,
-                    imageUrl = productViewModel.productUrl,
-                    expirationDate = productViewModel.productExpireDate,
-                    dateAdded = "lala",
-                    quantity = productViewModel.productQuantity
+                    code = barcode,
+                    name = name,
+                    imageUrl = productViewModel.productUrl, // TODO
+                    expirationDate = Utils.getTimeMillisOfStringDate(expirationDate),
+                    expirationDateInString = expirationDate,
+                    dateAdded = "lala", // TODO
+
+                    quantity = quantity
                 )
 
 //                if (code != null) {
@@ -328,5 +391,6 @@ fun ContentEditProductScreen(
         ) {
             Text(text = stringResource(R.string.edit))
         }
+
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.marcossan.freshfy.navigation.Navigation
 import com.marcossan.freshfy.ui.theme.DespensaTheme
+import com.marcossan.freshfy.viewmodels.EditProductViewModel
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,7 +26,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val productViewModel by viewModels<ProductViewModel>()
-                    Navigation(productViewModel = productViewModel)
+                    val editProductViewModel by viewModels<EditProductViewModel>()
+                    Navigation(productViewModel = productViewModel, editProductViewModel = editProductViewModel)
                 }
             }
         }

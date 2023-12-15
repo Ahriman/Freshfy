@@ -20,7 +20,8 @@ private fun initializeProduct(): Product {
         code = "8424818268292",
         name = "Soja",
         imageUrl = "https://images.openfoodfacts.org/images/products/842/481/826/8292/front_es.9.400.jpg",
-        expirationDate = "",
+        expirationDate = 0L,
+        expirationDateInString = "",
         dateAdded = "",
         quantity = "1"
     )

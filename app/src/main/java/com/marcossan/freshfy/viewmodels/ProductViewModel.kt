@@ -9,9 +9,11 @@ import android.content.Intent
 import android.database.sqlite.SQLiteConstraintException
 import androidx.compose.material.Snackbar
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -26,6 +28,7 @@ import com.marcossan.freshfy.data.network.ProductJson
 import com.marcossan.freshfy.data.local.ProductRepository
 import com.marcossan.freshfy.states.NotificationState
 import com.marcossan.freshfy.states.ProductState
+import com.marcossan.freshfy.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,6 +75,7 @@ class ProductViewModel @Inject constructor(
                 )
             }
         }
+
     }
 
     @Throws(Exception::class)
@@ -82,7 +86,7 @@ class ProductViewModel @Inject constructor(
 
     fun updateProduct(product: Product) = viewModelScope.launch {
         productRepository.updateProduct(product)
-        clearData()
+//        clearData() // TODO
     }
 
     fun deleteProduct(product: Product) = viewModelScope.launch {
@@ -90,30 +94,37 @@ class ProductViewModel @Inject constructor(
     }
 
     fun getProduct(barcode: String) = viewModelScope.launch {
-        val e = productRepository.getProduct(barcode)
-        e.collectLatest { product ->
-            _product = product
-        }
+//        productRepository.getProduct(barcode).collectLatest { product ->
+//            _product = product
+//        }
 
 
-        viewModelScope.launch {
-            productRepository.getProduct(barcode).collectLatest {
-                productState = productState.copy(
-                    product = it
-                )
-            }
-        }
+//        viewModelScope.launch {
+//            productRepository.getProduct(barcode).collectLatest {
+//                productState = productState.copy(
+//                    product = it
+//                )
+//            }
+//        }
     }
 
+//    fun setProductId(productId: String) {
+//        _barcode = productId
+//    }
+//
+//    val producto: LiveData<Product?> = Transformations.switchMap(_productId) { productId ->
+//        productRepository.getProduct(productId)
+//    }
 
-    fun scheduleNotification(days: Int, context: Context) = viewModelScope.launch {
+
+    fun scheduleNotification(days: Long, context: Context) = viewModelScope.launch {
 
         // Pasar días a milisegundos
         // Obtener fecha actual en ms
         // Obtener direfencia y con ella buscar en BDD con getProductsThatExpiredInDays
 
-        productRepository.getProductsThatExpiredInDays(days)
-
+        val a = productRepository.getProductsThatExpiredInDays(days)
+        println("lalal" + a)
 //
 //
 //        val tiempoRestante = calcularTiempoRestante(fecha.fecha)
@@ -136,14 +147,14 @@ class ProductViewModel @Inject constructor(
 
 
 
-
+        sendNotificacion(context = context, product = product)
 
     }
     // Falta solicitar permisos al usuario para que funcione
     // TODO: https://www.youtube.com/watch?v=7RUCSOsp2jQ
     // https://www.youtube.com/watch?v=imFJZ4Kbv_g
 
-    fun sendNotificacion(context: Context) {
+    fun sendNotificacion(context: Context, product: Product) {
 
 //        val navcontroller = NavController(context = context)
 //        navcontroller.graph.apply {
@@ -164,7 +175,7 @@ class ProductViewModel @Inject constructor(
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         val notification = Notification.Builder(context, FreshfyApp.CHANNEL_ID)
             .setContentTitle(notificationState.name)
-            .setContentText("A tu producto [nombre_producto] le quedan [X] días para caducar. eer" +notificationState.name.hashCode())
+            .setContentText("A tu producto ${product.name} le quedan [X] días para caducar. eer" +notificationState.name.hashCode())
             .setSmallIcon(R.drawable.logo_notificacion)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true) // Permite que la notifiación sea deslizable
@@ -192,16 +203,16 @@ class ProductViewModel @Inject constructor(
 //    }
 
     // Function to get product by barcode
-    suspend fun getProductByBarcode(barcode: String): Flow<Product> {
-        return productRepository.getProduct(barcode)
-    }
+//    suspend fun getProductByBarcode(barcode: String): Flow<Product> {
+//        return productRepository.getProduct(barcode)
+//    }
 
     suspend fun getProductByBarcode2(barcode: String): Product {
         return productRepository.getProduct2(barcode)
     }
 
 
-    private fun clearData() {
+    fun clearData() {
         _barcode = ""
         _productName = ""
         _productUrl = ""
@@ -212,7 +223,8 @@ class ProductViewModel @Inject constructor(
             code = _barcode,
             name = _productName,
             imageUrl = _productUrl,
-            expirationDate = _productExpireDate,
+            expirationDate = Utils.getTimeMillisOfStringDate(_productExpireDate),
+            expirationDateInString = _productExpireDate,
             quantity = _productQuantity
         )
     }
@@ -259,8 +271,8 @@ class ProductViewModel @Inject constructor(
     val isValidProductQuantity get() = _isValidProductQuantity
 
 
-    fun onProductChange(product: MutableStateFlow<Product?>) {
-        _productFlow = product
+    fun onProductChange(product: Product) {
+        _product = product
     }
 
 //    fun onProductChange(barcode: Flow<Product>?) {
@@ -310,7 +322,8 @@ class ProductViewModel @Inject constructor(
             code = _barcode,
             name = _productName,
             imageUrl = _productUrl,
-            expirationDate = _productExpireDate,
+            expirationDate = Utils.getTimeMillisOfStringDate(_productExpireDate),
+            expirationDateInString = _productExpireDate,
             quantity = _productQuantity
         )
     )
@@ -402,7 +415,8 @@ class ProductViewModel @Inject constructor(
             name = nombreProducto,
             imageUrl = imageURL,
 //            expirationDate = fechaCaducidad,
-            expirationDate = _productExpireDate,
+            expirationDate = Utils.getTimeMillisOfStringDate(_productExpireDate),
+            expirationDateInString = _productExpireDate,
             dateAdded = calcularFechaActual()
         )
     }
@@ -414,17 +428,17 @@ class ProductViewModel @Inject constructor(
     }
 
     @SuppressLint("SimpleDateFormat")
-    fun validarFormatoFecha(): Boolean {
-        val formato = SimpleDateFormat("dd/MM/yyyy")
-        formato.isLenient = false
-
-        try {
-            formato.parse(_productExpireDate)
-            return true
-        } catch (e: ParseException) {
-            return false
-        }
-    }
+//    fun validarFormatoFecha(): Boolean {
+//        val formato = SimpleDateFormat("dd/MM/yyyy")
+//        formato.isLenient = false
+//
+//        try {
+//            formato.parse(_productExpireDate)
+//            return true
+//        } catch (e: ParseException) {
+//            return false
+//        }
+//    }
 
     // Métodos para notificaciones
 //    fun programarNotificacion(days: Int) {

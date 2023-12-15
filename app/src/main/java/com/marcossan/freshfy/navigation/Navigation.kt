@@ -22,6 +22,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.marcossan.freshfy.utils.Utils
+import com.marcossan.freshfy.viewmodels.EditProductViewModel
 import com.marcossan.freshfy.views.AddProductScreen
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import com.marcossan.freshfy.views.EditProductScreen
@@ -30,7 +32,8 @@ import com.marcossan.freshfy.views.BarcodeScannerScreen
 
 @Composable
 fun Navigation(
-    productViewModel: ProductViewModel
+    productViewModel: ProductViewModel,
+    editProductViewModel: EditProductViewModel
 ) {
 
     val navController = rememberNavController()
@@ -57,18 +60,20 @@ fun Navigation(
         composable(Screens.EdiProductScreen.route, arguments = listOf(
             navArgument("id") { type = NavType.IntType },
             navArgument("barcode") { type = NavType.StringType }, // TODO: Int?
-            navArgument("name") { type = NavType.StringType },
-            navArgument("expirationDate") { type = NavType.StringType },
-            navArgument("quantity") { type = NavType.StringType }, // TODO: Int?
+//            navArgument("name") { type = NavType.StringType },
+//            navArgument("expirationDate") { type = NavType.LongType },
+//            navArgument("quantity") { type = NavType.StringType }, // TODO: Int?
         )) {
             EditProductScreen(
                 navController,
                 productViewModel,
+                editProductViewModel,
                 it.arguments!!.getInt("id"),
                 it.arguments?.getString("barcode"),
-                it.arguments?.getString("name"),
-                it.arguments?.getString("expirationDate"),
-                it.arguments?.getString("quantity"),
+//                it.arguments?.getString("name"),
+////                it.arguments?.getString("expirationDate"),
+//                it.arguments?.getLong("expirationDate"),
+//                it.arguments?.getString("quantity"),
             )
         }
 
