@@ -6,6 +6,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.marcossan.freshfy.viewmodels.ProductViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 //class BarcodeScanner(
 //    private val context: Context,
@@ -111,9 +112,12 @@ class BarcodeScanner(
         .build()
 
     private val scanner = GmsBarcodeScanning.getClient(appContext, options)
-//    private val barCodeResults = MutableStateFlow<String?>(null)
+    private val barCodeResults = MutableStateFlow<String?>(null)
 
-    suspend fun startScan(viewModel: ProductViewModel) {
+
+
+    suspend fun startScan(viewModel: ProductViewModel): ScannerResult {
+        var scannerResult: ScannerResult = ScannerResult.UNDEFINED
         try {
             scanner.startScan()
                 .addOnSuccessListener { barcode ->
@@ -122,20 +126,26 @@ class BarcodeScanner(
                     viewModel.onScannedBarcode(barcode = barcode.displayValue.toString())
                     navController.navigate(route = "add/${barcode.displayValue.toString()}")
 //                    navController.navigate(route = Screens.ScannerScreen.route)
+                    barCodeResults.value = "Ok"
+                    scannerResult = ScannerResult.OK
                 }
                 .addOnCanceledListener {
                     // Task cancelled
-//                    barCodeResults.value = "canceled"
-                    viewModel.onScannedBarcode(barcode = "canceled")
+                    barCodeResults.value = "canceled"
+//                    viewModel.onScannedBarcode(barcode = "canceled")
+                    scannerResult = ScannerResult.CANCELED
                 }
                 .addOnFailureListener {
                     // Task failed with an exception
-//                    barCodeResults.value = "failed"
-                    viewModel.onScannedBarcode(barcode = "failed")
+                    barCodeResults.value = "failed"
+//                    viewModel.onScannedBarcode(barcode = "failed")
+                    scannerResult = ScannerResult.FAILED
                 }
         } catch (e: Exception) {
             println(e)
         }
+
+        return scannerResult
 
     }
 }

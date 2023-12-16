@@ -16,7 +16,7 @@ class FreshfyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificacionChannel();
+        createNotificacionChannel()
     }
 
     private fun createNotificacionChannel() {

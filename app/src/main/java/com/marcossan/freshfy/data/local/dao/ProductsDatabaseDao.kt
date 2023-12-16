@@ -1,5 +1,6 @@
 package com.marcossan.freshfy.data.local.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -11,6 +12,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 @Dao
 interface ProductsDatabaseDao {
+
+    @Query("SELECT * FROM products")
+    fun getAllProductsAsState(): LiveData<List<Product>>
+
+    @Query("SELECT * FROM products WHERE id = :productId")
+    fun getProductById(productId: Long): LiveData<Product>
+
     @Query("SELECT * FROM products")
     fun getAll(): Flow<List<Product>>
 
@@ -18,7 +26,7 @@ interface ProductsDatabaseDao {
     suspend fun getProduct(barcode: String): Product // getProductById
 
     @Query("SELECT * FROM products WHERE id = :id")
-    fun getProductById(id: Int): Product
+    fun getProductById(id: Int): LiveData<Product>
 
     @Query("SELECT * FROM products WHERE expirationDate >= :days")
     fun getProductsThatExpiredInDays(days: Long): Flow<List<Product>>
@@ -41,9 +49,9 @@ interface ProductsDatabaseDao {
 
 
 
-    @Query("SELECT * FROM products WHERE id = :productId")
-//    fun getProductById(productId: Long?): Flow<Product?>
-    suspend fun getProductById(productId: Long): Product?
+//    @Query("SELECT * FROM products WHERE id = :productId")
+////    fun getProductById(productId: Long?): Flow<Product?>
+//    suspend fun getProductById(productId: Long): Product?
 
     @Update
     suspend fun updateProduct(product: Product)

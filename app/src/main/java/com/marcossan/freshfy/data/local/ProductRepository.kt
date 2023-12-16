@@ -1,5 +1,6 @@
 package com.marcossan.freshfy.data.local
 
+import androidx.lifecycle.LiveData
 import com.marcossan.freshfy.data.local.dao.ProductsDatabaseDao
 import com.marcossan.freshfy.data.model.Product
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +11,17 @@ class ProductRepository(
     private val productDao: ProductsDatabaseDao
 ) {
 
-//    suspend fun insertProduct(product: Product) {
+
+    fun getAllProductsAsState(): LiveData<List<Product>> {
+        return productDao.getAllProductsAsState()
+    }
+
+    fun getProductById(id: Int): LiveData<Product> {
+        return productDao.getProductById(id)
+    }
+
+
+    //    suspend fun insertProduct(product: Product) {
 //        productDao.insert(product)
 //    }
     suspend fun addProduct(product: Product) {
@@ -38,11 +49,11 @@ class ProductRepository(
     }
 
 
-    suspend fun getProduct(productId: Long): Product? {
-        return productDao.getProductById(productId)
-    }
+//    suspend fun getProduct(productId: Long): Product? {
+//        return productDao.getProductById(productId)
+//    }
 
-    suspend fun getProductById(productId: Long): Product? {
+    fun getProductById(productId: Long): LiveData<Product> {
         return productDao.getProductById(productId)
     }
 

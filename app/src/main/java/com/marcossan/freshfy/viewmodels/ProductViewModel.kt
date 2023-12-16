@@ -6,17 +6,13 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.database.sqlite.SQLiteConstraintException
-import androidx.compose.material.Snackbar
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.google.gson.stream.JsonReader
 import com.marcossan.freshfy.FreshfyApp
 import com.marcossan.freshfy.MainActivity
@@ -30,15 +26,12 @@ import com.marcossan.freshfy.states.NotificationState
 import com.marcossan.freshfy.states.ProductState
 import com.marcossan.freshfy.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.MissingFieldException
 import java.io.StringReader
-import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -57,6 +50,12 @@ class ProductViewModel @Inject constructor(
 //    private val dao: ProductsDatabaseDao
     private val productRepository: ProductRepository
 ) : ViewModel() {
+
+    // LiveData que emite la lista de productos como State
+    val allProducts = productRepository.getAllProductsAsState()
+
+//    // LiveData que emite la lista de productos como State
+//    val editProduct = productRepository.getProductById(productId = product.id)
 
     // ROOM start
 
@@ -107,6 +106,9 @@ class ProductViewModel @Inject constructor(
 //            }
 //        }
     }
+    fun getProductById(productId: Long): LiveData<Product> {
+        return productRepository.getProductById(productId)
+    }
 
 //    fun setProductId(productId: String) {
 //        _barcode = productId
@@ -135,7 +137,6 @@ class ProductViewModel @Inject constructor(
 //        }
 
 
-
 //        val notificationManager = context.getSystemService(NotificationManager::class.java)
 //        val notification = Notification.Builder(context, FreshfyApp.CHANEL_ID)
 //            .setContentTitle(state.name)
@@ -144,7 +145,6 @@ class ProductViewModel @Inject constructor(
 //            .setAutoCancel(true)
 //            .build()
 //        notificationManager.notify(state.name.hashCode(), notification)
-
 
 
         sendNotificacion(context = context, product = product)
@@ -175,14 +175,17 @@ class ProductViewModel @Inject constructor(
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         val notification = Notification.Builder(context, FreshfyApp.CHANNEL_ID)
             .setContentTitle(notificationState.name)
-            .setContentText("A tu producto ${product.name} le quedan [X] días para caducar. eer" +notificationState.name.hashCode())
+            .setContentText("A tu producto ${product.name} le quedan [X] días para caducar. eer" + notificationState.name.hashCode())
             .setSmallIcon(R.drawable.logo_notificacion)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true) // Permite que la notifiación sea deslizable
             .build()
 
         // TODO: Agrupar notificaciones por producto
-        notificationManager.notify(notificationState.name.hashCode(), notification) //notificationState.name.hashCode()
+        notificationManager.notify(
+            notificationState.name.hashCode(),
+            notification
+        ) //notificationState.name.hashCode()
 
     }
 
@@ -220,7 +223,7 @@ class ProductViewModel @Inject constructor(
         _productQuantity = ""
 
         _product = Product(
-            code = _barcode,
+            barcode = _barcode,
             name = _productName,
             imageUrl = _productUrl,
             expirationDate = Utils.getTimeMillisOfStringDate(_productExpireDate),
@@ -319,7 +322,7 @@ class ProductViewModel @Inject constructor(
 
     private var _product by mutableStateOf(
         Product(
-            code = _barcode,
+            barcode = _barcode,
             name = _productName,
             imageUrl = _productUrl,
             expirationDate = Utils.getTimeMillisOfStringDate(_productExpireDate),
@@ -411,7 +414,7 @@ class ProductViewModel @Inject constructor(
         jsonReader.close() // Close the JsonReader when done
 
         return Product(
-            code = barcode,
+            barcode = barcode,
             name = nombreProducto,
             imageUrl = imageURL,
 //            expirationDate = fechaCaducidad,
@@ -459,6 +462,24 @@ class ProductViewModel @Inject constructor(
         return fechaMillis - tiempoActual
     }
 
+
+    private val _permissionGranted = mutableStateOf(false)
+    val permissionGranted: State<Boolean> = _permissionGranted
+
+//    fun requestPermission(conte) {
+//        if (ContextCompat.checkSelfPermission(
+//                getApplication(),
+//                android.Manifest.permission.POST_NOTIFICATIONS
+//            ) == PackageManager.PERMISSION_GRANTED
+//        ) {
+//            _permissionGranted.value = true
+//        } else {
+//            // Si no se han otorgado los permisos, solicitarlos
+//            // (Esto abrirá el cuadro de diálogo de permisos)
+//            // Puedes usar el método requestPermissions de la actividad.
+//        }
+//    }
+
 }
 
 //@Suppress("UNCHECKED_CAST")
@@ -478,3 +499,4 @@ class ProductViewModel @Inject constructor(
 //        return ProductViewModel(productRepository = ProductRepository) as T
 //    }
 //}
+

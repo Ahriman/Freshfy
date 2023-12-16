@@ -28,6 +28,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,19 +41,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
-import com.marcossan.freshfy.utils.Utils
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductsScreen(
+fun ProductsListScreen(
     navController: NavController,
     viewModel: ProductViewModel
 ) {
+
+    // Utiliza un MutableState para observar los cambios en la lista de productos
+    var products by remember { mutableStateOf<List<Product>>(emptyList()) }
+
+    // Observa los cambios en la lista de productos
+    DisposableEffect(Unit) {
+        val observer = Observer<List<Product>> { productList ->
+            products = productList
+        }
+
+        viewModel.allProducts.observeForever(observer)
+
+        onDispose {
+            // Desvincula la observación cuando el componente se dispara
+            viewModel.allProducts.removeObserver(observer)
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -81,7 +104,7 @@ fun ProductsScreen(
         }
     ) {
         if (viewModel.state.products.isNotEmpty()) {
-            ContentProductsScreen(it, navController, viewModel)
+            ContentProductsListScreen(it, navController, viewModel, products)
         } else {
             Column(
                 modifier = Modifier
@@ -104,22 +127,24 @@ fun ProductsScreen(
 }
 
 @Composable
-fun ContentProductsScreen(
+fun ContentProductsListScreen(
     it: PaddingValues,
     navController: NavController,
-    viewModel: ProductViewModel
+    viewModel: ProductViewModel,
+    products: List<Product>
 ) {
-    val state = viewModel.state
+//    val state = viewModel.state
 
     Column(modifier = Modifier.padding(it)) {
         LazyColumn {
-            items(state.products) { product ->
+//            items(state.products) { product ->
+            items(products) { product ->
 
                 ProductListItem(
                     navController = navController,
                     viewModel = viewModel,
                     product = product,
-                    onOpenProductItem = { navController.navigate(route = "scanner/${product.code}") }
+                    onOpenProductItem = { navController.navigate(route = "scanner/${product.barcode}") }
                 )
 
             }
@@ -165,7 +190,7 @@ fun ProductListItem(
             )
             // TODO: Marca
             Text(
-                text = stringResource(R.string.code, product.code),
+                text = stringResource(R.string.code, product.barcode),
             )
             // Fecha caducidad
             Text(
@@ -186,7 +211,7 @@ fun ProductListItem(
             horizontalAlignment = Alignment.End
         ) {
             IconButton(onClick = {
-                navController.navigate("edit/${product.id}/${product.code}") // /${product.name}/${product.expirationDate}/${product.quantity}
+                navController.navigate("edit/${product.id}/${product.barcode}") // /${product.name}/${product.expirationDate}/${product.quantity}
             }) {
                 Icon(
                     imageVector = Icons.Default.Edit,

@@ -1,5 +1,8 @@
 package com.marcossan.freshfy.navigation
 
+import android.Manifest
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,25 +26,38 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.marcossan.freshfy.utils.Utils
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.marcossan.freshfy.viewmodels.EditProductViewModel
 import com.marcossan.freshfy.views.AddProductScreen
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import com.marcossan.freshfy.views.EditProductScreen
-import com.marcossan.freshfy.views.ProductsScreen
+import com.marcossan.freshfy.views.ProductsListScreen
 import com.marcossan.freshfy.views.BarcodeScannerScreen
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun Navigation(
     productViewModel: ProductViewModel,
     editProductViewModel: EditProductViewModel
 ) {
+    // Solicitar permisos al iniciar la aplicación
+    NotificationScreen()
+
+//    LaunchedEffect(key1 = true) {
+////        productViewModel.requestPermission()
+//
+//
+//    }
+
 
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "start") {
         composable("start") {
-            ProductsScreen(navController, productViewModel)
+            ProductsListScreen(navController, productViewModel)
         }
 
 //        // Entrada por defecto
@@ -58,8 +75,8 @@ fun Navigation(
         }
 
         composable(Screens.EdiProductScreen.route, arguments = listOf(
-            navArgument("id") { type = NavType.IntType },
-            navArgument("barcode") { type = NavType.StringType }, // TODO: Int?
+            navArgument("id") { type = NavType.LongType },
+//            navArgument("barcode") { type = NavType.StringType }, // TODO: Long?
 //            navArgument("name") { type = NavType.StringType },
 //            navArgument("expirationDate") { type = NavType.LongType },
 //            navArgument("quantity") { type = NavType.StringType }, // TODO: Int?
@@ -67,9 +84,8 @@ fun Navigation(
             EditProductScreen(
                 navController,
                 productViewModel,
-                editProductViewModel,
-                it.arguments!!.getInt("id"),
-                it.arguments?.getString("barcode"),
+                it.arguments!!.getLong("id"),
+//                it.arguments?.getString("barcode"),
 //                it.arguments?.getString("name"),
 ////                it.arguments?.getString("expirationDate"),
 //                it.arguments?.getLong("expirationDate"),
@@ -133,4 +149,30 @@ fun NotificationScreen(onBackPress: () -> Unit) {
             Text("Volver a la pantalla principal")
         }
     }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun NotificationScreen() {
+    val permissionState =
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+
+    LaunchedEffect(true) {
+        permissionState.launchPermissionRequest()
+    }
+
+    permissionState.status.isGranted
+
+    if (permissionState.status.isGranted) {
+        androidx.compose.material.Text(text = "El permiso fue condecido")
+    } else if(!permissionState.status.shouldShowRationale){
+        androidx.compose.material.Text(text = "Mostrar racional")
+    } else {
+        androidx.compose.material.Text(text = "El permiso fue denegado")
+    }
+
+
+    androidx.compose.material.Text(text = "Notificación")
 }

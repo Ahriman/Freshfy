@@ -1,6 +1,5 @@
 package com.marcossan.freshfy.views
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
@@ -26,6 +27,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
@@ -45,12 +48,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
 import com.marcossan.freshfy.navigation.Screens
 import com.marcossan.freshfy.utils.BarcodeScanner
+import com.marcossan.freshfy.utils.ScannerResult
 import com.marcossan.freshfy.utils.Utils
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import kotlinx.coroutines.launch
@@ -70,10 +75,15 @@ fun AddProductScreen(
     val context = LocalContext.current
     barcodeScanner = BarcodeScanner(context, navController)
 
+    val scope = rememberCoroutineScope()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scaffoldState = rememberScaffoldState()
 
 
 
     Scaffold(
+
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -96,13 +106,58 @@ fun AddProductScreen(
                     }
                 }
             )
-        }
-    ) {
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState, modifier = Modifier.fillMaxWidth()
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.primary,
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    text = "Bottom app bar",
+                )
+            }
+        },
+
+        ) {
         ContentAddProductScreen(
             it = it,
             navController = navController,
             productViewModel = productViewModel,
-            onScanBarcode = { barcodeScanner.startScan(productViewModel) },
+            onScanBarcode = {
+//                barcodeScanner.startScan(productViewModel)
+                val scannerResult: ScannerResult = barcodeScanner.startScan(productViewModel)
+                // show snackbar as a suspend function
+//                snackbarHostState.showSnackbar("Snackbar # " + stringResult)
+                when (scannerResult) {
+                    ScannerResult.OK -> {
+                        snackbarHostState.showSnackbar("FAILED")
+                    }
+
+                    ScannerResult.CANCELED -> {
+                        snackbarHostState.showSnackbar("CANCELED")
+                    }
+
+                    ScannerResult.FAILED -> {
+                        snackbarHostState.showSnackbar("FAILED")
+                    }
+
+                    else -> {
+
+                    }
+                }
+//                scope.launch {
+//                    snackbarHostState.showSnackbar(message = stringResult.toString(), duration = SnackbarDuration.Long)
+//                }
+//                snackbarHostState.showSnackbar(message = stringResult.toString(), duration = SnackbarDuration.Long)
+            },
             barcode = barcode ?: ""
         )
 //            onScanBarcode = { barcodeScanner.startScan() })
@@ -302,7 +357,7 @@ fun ContentAddProductScreen(
 
         //TODO
         val product = Product(
-            code = productViewModel.barcode,
+            barcode = productViewModel.barcode,
             name = productViewModel.productName,
             imageUrl = productViewModel.productUrl,
             expirationDate = Utils.getTimeMillisOfStringDate(productViewModel.productExpireDate),
@@ -340,7 +395,7 @@ fun ContentAddProductScreen(
 
                 // TODO
                 val product = Product(
-                    code = productViewModel.barcode,
+                    barcode = productViewModel.barcode,
                     name = productViewModel.productName,
                     imageUrl = productViewModel.productUrl,
                     expirationDate = Utils.getTimeMillisOfStringDate(productViewModel.productExpireDate),
@@ -400,8 +455,6 @@ fun ContentAddProductScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text("Ver Notificaciones")
         }
-
-
 
 
     }
