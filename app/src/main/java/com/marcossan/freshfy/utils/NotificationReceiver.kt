@@ -33,14 +33,14 @@ class NotificationReceiver: BroadcastReceiver() {
 //                Product::class.java.classLoader
 //            )
 
-            val product = intent.getParcelableExtra<Product>(PRODUCT_EXTRA)
-                ?: intent.getSerializableExtra(PRODUCT_EXTRA) as? Product
+//            val product = intent.getParcelableExtra<Product>(PRODUCT_EXTRA)
+//                ?: intent.getSerializableExtra(PRODUCT_EXTRA) as? Product
 
 
             // Mostrar la notificación usando el ID
-            if (product != null) {
-                createSimpleNotification(context, notificationId, product)
-            }
+//            if (product != null) {
+//                createSimpleNotification(context, notificationId, product)
+//            }
         }
 //        createSimpleNotification(context)
     }
@@ -59,7 +59,7 @@ class NotificationReceiver: BroadcastReceiver() {
             .setContentText("Esto es un ejemplo <3")
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .bigText("Holita holi Holita holi Holita holi Holita holi Holita holi Holita holi Holita holi Holita holi Holita holi Holita holi Holita holi Holita holi Holita holi ")
+                    .bigText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n")
             )
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

@@ -1,4 +1,4 @@
-package com.marcossan.freshfy.views
+package com.marcossan.freshfy.ui.views
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

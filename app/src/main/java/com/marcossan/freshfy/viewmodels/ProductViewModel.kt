@@ -1,17 +1,14 @@
 package com.marcossan.freshfy.viewmodels
 
-import android.Manifest
 import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
@@ -34,8 +31,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
 import java.io.StringReader
-import java.util.Calendar
-import java.util.Date
 import javax.inject.Inject
 
 const val NOTIFICATION_ID_EXTRA = "notification_id"
@@ -105,55 +100,6 @@ class ProductViewModel @Inject constructor(
     var notificationState by mutableStateOf(NotificationState())
         private set
 
-    fun changeName(text: String) {
-        notificationState = notificationState.copy(
-            name = text
-        )
-    }
-
-//    fun setProductId(productId: String) {
-//        _barcode = productId
-//    }
-//
-//    val producto: LiveData<Product?> = Transformations.switchMap(_productId) { productId ->
-//        productRepository.getProduct(productId)
-//    }
-
-    //    fun scheduleNotification(context: Context, notificationId: Int, delayMillis: Long) {
-//        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-//        val intent = Intent(context, NotificationReceiver::class.java)
-//            .setAction("com.marcossan.freshfy.ACTION_SHOW_NOTIFICATION")
-//            .putExtra(NOTIFICATION_ID_EXTRA, notificationId)
-//
-//        val pendingIntent = PendingIntent.getBroadcast(
-//            context,
-//            notificationId,
-//            intent,
-////            PendingIntent.FLAG_ONE_SHOT
-//            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
-//        )
-//
-//        // Programar la acción del BroadcastReceiver para ejecutarse en el futuro
-//        alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delayMillis, pendingIntent)
-//    }
-
-    fun scheduleNotification(context: Context, notificationId: Int, delayMillis: Long) {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.SCHEDULE_EXACT_ALARM
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            // El permiso para programar alarmas exactas está concedido
-            scheduleExactAlarm(context, notificationId, delayMillis)
-        } else {
-            // El permiso no está concedido, solicita el permiso o maneja la situación de otra manera
-            viewModelScope.launch {
-                // Ejemplo: solicitar permiso al usuario (debe implementarse según tus necesidades)
-                requestScheduleExactAlarmPermission(context)
-            }
-        }
-    }
-
     private fun scheduleExactAlarm(context: Context, notificationId: Int, delayMillis: Long) {
         val alarmManager = context.getSystemService<AlarmManager>()
         val intent = Intent(context, NotificationReceiver::class.java)
@@ -174,21 +120,7 @@ class ProductViewModel @Inject constructor(
     private suspend fun requestScheduleExactAlarmPermission(context: Context) {
         // Ejemplo: implementar lógica para solicitar permiso al usuario
         // (puede ser mediante un diálogo, una actividad, etc.)
-    }
-
-    fun checkAndScheduleNotification(context: Context, product: Product) {
-        if (isExpirationNear(Date(product.expirationDate))) {
-            val notificationId = generateNotificationId(product)
-            scheduleNotification(context, notificationId, product.expirationDate)
-        }
-    }
-
-    private fun isExpirationNear(expiryDate: Date): Boolean {
-        val calendar = Calendar.getInstance()
-        calendar.time = expiryDate
-        calendar.add(Calendar.DAY_OF_YEAR, -5) // Restar 5 días
-
-        return System.currentTimeMillis() >= calendar.timeInMillis
+        println("requestScheduleExactAlarmPermission")
     }
 
     private fun generateNotificationId(product: Product): Int {
@@ -199,37 +131,6 @@ class ProductViewModel @Inject constructor(
         // Lógica para programar la notificación, por ejemplo, usando AlarmManager
         // ...
         println("Notificación para el producto: $product")
-    }
-
-    fun scheduleNotification(days: Long, context: Context) = viewModelScope.launch {
-
-        // Pasar días a milisegundos
-        // Obtener fecha actual en ms
-        // Obtener direfencia y con ella buscar en BDD con getProductsThatExpiredInDays
-
-        val a = productRepository.getProductsThatExpiredInDays(days)
-
-//
-//
-//        val tiempoRestante = calcularTiempoRestante(fecha.fecha)
-//
-//        if (tiempoRestante > 0) {
-//            // Configura y muestra la notificación utilizando el servicio de notificaciones de Android
-//            // Puedes utilizar NotificationManager y otras clases según tus necesidades
-//        }
-
-//        val notificationManager = context.getSystemService(NotificationManager::class.java)
-//        val notification = Notification.Builder(context, FreshfyApp.CHANEL_ID)
-//            .setContentTitle(state.name)
-//            .setContentText("Esto es una notificación")
-//            .setSmallIcon(R.drawable.logo_notificacion)
-//            .setAutoCancel(true)
-//            .build()
-//        notificationManager.notify(state.name.hashCode(), notification)
-
-
-        sendNotificacion(context = context, product = product)
-
     }
 
     fun sendNotificacion(context: Context, product: Product) {

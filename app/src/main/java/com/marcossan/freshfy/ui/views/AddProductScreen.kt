@@ -1,4 +1,4 @@
-package com.marcossan.freshfy.views
+package com.marcossan.freshfy.ui.views
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable

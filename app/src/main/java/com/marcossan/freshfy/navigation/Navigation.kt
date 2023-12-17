@@ -14,10 +14,10 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.marcossan.freshfy.viewmodels.ProductViewModel
-import com.marcossan.freshfy.views.AddProductScreen
-import com.marcossan.freshfy.views.EditProductScreen
-import com.marcossan.freshfy.views.ProductScreen
-import com.marcossan.freshfy.views.ProductsListScreen
+import com.marcossan.freshfy.ui.views.AddProductScreen
+import com.marcossan.freshfy.ui.views.EditProductScreen
+import com.marcossan.freshfy.ui.views.ProductScreen
+import com.marcossan.freshfy.ui.views.ProductsListScreen
 
 @OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
