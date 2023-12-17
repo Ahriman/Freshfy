@@ -54,8 +54,7 @@ fun Navigation(
         composable(Screens.AddProductScreen.route) {
             AddProductScreen(
                 navController,
-                productViewModel,
-                it.arguments?.getString("barcode") ?: ""
+                productViewModel
             )
         }
 
@@ -64,11 +63,13 @@ fun Navigation(
             navArgument("barcode") { type = NavType.StringType }
         )) {
             AddProductScreen(
-                navController, productViewModel, it.arguments?.getString("barcode") ?: "",
+                navController,
+                productViewModel
             )
         }
 
-        composable("${Screens.EdiProductScreen.route}/{id}/{barcode}", arguments = listOf(
+        composable(
+            "${Screens.EdiProductScreen.route}/{id}/{barcode}", arguments = listOf(
                 navArgument("id") { type = NavType.LongType },
             )
         ) {

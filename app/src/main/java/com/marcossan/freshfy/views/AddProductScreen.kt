@@ -276,7 +276,7 @@ fun ContentAddProductScreen(
             expirationDateInString = productViewModel.productExpireDate,
             dateAdded = System.currentTimeMillis(),
             dateAddedInString = Utils.getStringDateFromMillis(System.currentTimeMillis()),
-            quantity = productViewModel.productQuantity
+            quantity = productViewModel.productQuantity.ifEmpty { "1" }
         )
 
         scope.launch {
@@ -285,26 +285,7 @@ fun ContentAddProductScreen(
 
         Button(
             onClick = {
-
-                // TODO
-                val product = Product(
-
-                    barcode = productViewModel.barcode,
-                    name = productViewModel.productName,
-                    imageUrl = productViewModel.productUrl,
-                    expirationDate = Utils.getTimeMillisOfStringDate(productViewModel.productExpireDate),
-                    expirationDateInString = productViewModel.productExpireDate,
-                    dateAdded = System.currentTimeMillis(),
-                    dateAddedInString = Utils.getStringDateFromMillis(System.currentTimeMillis()),
-                    quantity = productViewModel.productQuantity
-                )
-
-                // TODO
-                try {
-                    productViewModel.addProduct(product = product)
-                } catch (e: Exception) {
-                }
-
+                productViewModel.addProduct(product = product)
                 navController.popBackStack()
             },
             enabled = isAddButtonEnabled

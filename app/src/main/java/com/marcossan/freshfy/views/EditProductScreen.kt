@@ -60,7 +60,6 @@ fun EditProductScreen(
     productId: Long
 ) {
 
-
     lateinit var barcodeScanner: BarcodeScanner
 
     val context = LocalContext.current
@@ -271,7 +270,6 @@ fun ContentEditProductScreen(
         OutlinedTextField(
             value = product?.quantity ?: "1",
             onValueChange = { productQuantity ->
-//                product?.quantity = productQuantity
                 if (productQuantity.isNotBlank() && productQuantity.length <= 3 && productQuantity.toInt() in 1..999) {
                     product = product?.copy(quantity = productQuantity)
                 }
