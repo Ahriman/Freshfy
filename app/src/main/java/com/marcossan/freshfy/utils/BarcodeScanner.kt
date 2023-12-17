@@ -125,8 +125,6 @@ class BarcodeScanner(
                     // Task completed successfully
 //                    barCodeResults.value = barcode.displayValue
                     viewModel.onScannedBarcode(barcode = barcode.displayValue.toString())
-                    navController.navigate(route = "${Screens.AddProductScreen.route}/${barcode.displayValue.toString()}")
-//                    navController.navigate(route = Screens.ScannerScreen.route)
                     barCodeResults.value = "Ok"
                     scannerResult = ScannerResult.OK
                 }
