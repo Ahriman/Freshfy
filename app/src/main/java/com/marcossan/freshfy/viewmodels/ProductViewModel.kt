@@ -31,6 +31,7 @@ import com.marcossan.freshfy.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
 import java.io.StringReader
 import java.util.Calendar
@@ -207,7 +208,7 @@ class ProductViewModel @Inject constructor(
         // Obtener direfencia y con ella buscar en BDD con getProductsThatExpiredInDays
 
         val a = productRepository.getProductsThatExpiredInDays(days)
-        println("lalal" + a)
+
 //
 //
 //        val tiempoRestante = calcularTiempoRestante(fecha.fecha)
@@ -216,7 +217,6 @@ class ProductViewModel @Inject constructor(
 //            // Configura y muestra la notificación utilizando el servicio de notificaciones de Android
 //            // Puedes utilizar NotificationManager y otras clases según tus necesidades
 //        }
-
 
 //        val notificationManager = context.getSystemService(NotificationManager::class.java)
 //        val notification = Notification.Builder(context, FreshfyApp.CHANEL_ID)
@@ -231,9 +231,6 @@ class ProductViewModel @Inject constructor(
         sendNotificacion(context = context, product = product)
 
     }
-    // Falta solicitar permisos al usuario para que funcione
-    // TODO: https://www.youtube.com/watch?v=7RUCSOsp2jQ
-    // https://www.youtube.com/watch?v=imFJZ4Kbv_g
 
     fun sendNotificacion(context: Context, product: Product) {
 
@@ -247,7 +244,6 @@ class ProductViewModel @Inject constructor(
             PendingIntent.FLAG_IMMUTABLE
         )
 
-
         val daysToExpire = Utils.calculateDaysUntilExpiration(product.expirationDate)
 
         val notificationManager = context.getSystemService(NotificationManager::class.java)
@@ -259,12 +255,10 @@ class ProductViewModel @Inject constructor(
             .setAutoCancel(true) // Permite que la notifiación sea deslizable
             .build()
 
-        // TODO: Agrupar notificaciones por producto
         notificationManager.notify(
-            notificationState.name.hashCode(),
+            product.name.hashCode(),
             notification
-        ) //notificationState.name.hashCode()
-
+        )
     }
     // Notifications end
 
@@ -288,6 +282,7 @@ class ProductViewModel @Inject constructor(
     var scannerUiState: ScannerUiState by mutableStateOf(ScannerUiState.Loading)
         private set
 
+    @OptIn(ExperimentalSerializationApi::class)
     suspend fun getProductFromApi(barcode: String) {
         val productJson: ProductJson
         try {
@@ -298,7 +293,6 @@ class ProductViewModel @Inject constructor(
             _productName = product.name
             _productUrl = product.imageUrl
         } catch (e: MissingFieldException) {
-            // TODO: Crear ventana modal, emergente?
             println("El código de barras no es válido o no existe en la base de datos porque el Json devuelto no es correcto.")
         }
     }

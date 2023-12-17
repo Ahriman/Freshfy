@@ -113,7 +113,6 @@ fun ProductScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-
             productViewModel.getProductFromApi(barcode = barcode)
             ContentProductScreen(
                 navController = navController,
