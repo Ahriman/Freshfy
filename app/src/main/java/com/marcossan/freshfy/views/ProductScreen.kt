@@ -3,7 +3,10 @@
 package com.marcossan.freshfy.views
 
 import android.annotation.SuppressLint
+import androidx.appcompat.widget.PopupMenu
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,10 +40,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Observer
@@ -92,6 +100,9 @@ fun ProductScreen(
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
+                },
+                actions = {
+                    ShowMenuOptions(product = product, productViewModel = productViewModel)
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -182,15 +193,15 @@ fun ResultScreen(
             is ScannerUiState.Error -> ErrorScreen()
         }
 
-        Button(
-            onClick = {
-                if (product != null) {
-                    productViewModel.sendNotificacion(context = context, product = product)
-                }
-            }
-        ) {
-            Text(text = stringResource(R.string.test_notification_button))
-        }
+//        Button(
+//            onClick = {
+//                if (product != null) {
+//                    productViewModel.sendNotificacion(context = context, product = product)
+//                }
+//            }
+//        ) {
+//            Text(text = stringResource(R.string.test_notification_button))
+//        }
 
     }
 }
@@ -215,5 +226,37 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
             painter = painterResource(id = R.drawable.ic_connection_error), contentDescription = ""
         )
         Text(text = stringResource(R.string.loading_failed), modifier = Modifier.padding(16.dp))
+    }
+}
+
+@Composable
+fun ShowMenuOptions(product: Product?, productViewModel: ProductViewModel) {
+    var expanded by remember { mutableStateOf(false) }
+    val density = LocalDensity.current.density
+    val anchorPosition = DpOffset(x = 4.dp * density, y = 0.dp)
+
+    IconButton(onClick = { expanded = true }) {
+        Icon(
+            imageVector = Icons.Default.MoreVert,
+            contentDescription = stringResource(R.string.test_notification_button),
+            tint = Color.White
+        )
+    }
+
+    val context = LocalContext.current
+
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+        modifier = Modifier.background(Color.White),
+        offset = anchorPosition
+    ) {
+        DropdownMenuItem(onClick = { /* Handle option 1 click */ }, text = {
+            Text(stringResource(R.string.test_notification_button), modifier = Modifier.clickable {
+                if (product != null) {
+                    productViewModel.sendNotificacion(context = context, product = product)
+                }
+            })
+        })
     }
 }
