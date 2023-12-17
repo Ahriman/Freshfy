@@ -8,7 +8,6 @@ import androidx.room.Query
 import androidx.room.Update
 import com.marcossan.freshfy.data.model.Product
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @Dao
 interface ProductsDatabaseDao {
@@ -23,7 +22,7 @@ interface ProductsDatabaseDao {
     fun getAll(): Flow<List<Product>>
 
     @Query("SELECT * FROM products WHERE code = :barcode")
-    suspend fun getProduct(barcode: String): Product // getProductById
+    suspend fun getProduct(barcode: String): Product
 
     @Query("SELECT * FROM products WHERE id = :id")
     fun getProductById(id: Int): LiveData<Product>
@@ -32,29 +31,12 @@ interface ProductsDatabaseDao {
     fun getProductsThatExpiredInDays(days: Long): Flow<List<Product>>
 
     @Insert
-    suspend fun addProduct(product: Product) // Insert
-
-//    @Update
-//    fun updateProduct(product: Product)
-
-    @Delete
-    suspend fun deleteProduct(product: Product)
-
-
-
-
-
-
-
-
-
-
-//    @Query("SELECT * FROM products WHERE id = :productId")
-////    fun getProductById(productId: Long?): Flow<Product?>
-//    suspend fun getProductById(productId: Long): Product?
+    suspend fun addProduct(product: Product)
 
     @Update
     suspend fun updateProduct(product: Product)
 
+    @Delete
+    suspend fun deleteProduct(product: Product)
 
 }

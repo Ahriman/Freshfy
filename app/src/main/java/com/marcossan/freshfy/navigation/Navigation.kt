@@ -3,24 +3,8 @@ package com.marcossan.freshfy.navigation
 import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -84,8 +68,7 @@ fun Navigation(
             )
         }
 
-        composable(
-            Screens.EdiProductScreen.route, arguments = listOf(
+        composable("${Screens.EdiProductScreen.route}/{id}/{barcode}", arguments = listOf(
                 navArgument("id") { type = NavType.LongType },
             )
         ) {
@@ -97,7 +80,7 @@ fun Navigation(
         }
 
         composable(
-            route = Screens.ProductScreen.route,
+            route = "${Screens.ProductScreen.route}/{barcode}/{id}",
             arguments = listOf(
                 navArgument("barcode") { type = NavType.StringType },
                 navArgument("id") { type = NavType.LongType },
@@ -113,42 +96,7 @@ fun Navigation(
             )
         }
 
-        composable(Screens.Notification.route) {
-            NotificationScreen(
-                onBackPress = {
-                    navController.popBackStack()
-                }
-            )
-        }
     }
 
 
-}
-
-@Composable
-fun NotificationScreen(onBackPress: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Contenido de tu pantalla de notificaciones
-        Text("¡Tienes una nueva notificación!")
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botón para regresar a la pantalla principal
-        Button(
-            onClick = onBackPress,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-        ) {
-            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Atrás")
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Volver a la pantalla principal")
-        }
-    }
 }
