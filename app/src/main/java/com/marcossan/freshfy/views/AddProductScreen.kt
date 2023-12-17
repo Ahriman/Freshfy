@@ -1,5 +1,6 @@
 package com.marcossan.freshfy.views
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,12 +56,14 @@ import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
 import com.marcossan.freshfy.navigation.Screens
 import com.marcossan.freshfy.utils.BarcodeScanner
+import com.marcossan.freshfy.utils.ExpiryNotificationManager
 import com.marcossan.freshfy.utils.ScannerResult
 import com.marcossan.freshfy.utils.Utils
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,6 +168,7 @@ fun AddProductScreen(
 }
 
 //@SuppressLint("StateFlowValueCalledInComposition", "CoroutineCreationDuringComposition")
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentAddProductScreen(
@@ -191,6 +195,9 @@ fun ContentAddProductScreen(
     }
 
     val scope = rememberCoroutineScope()
+
+    // Habilitar o deshabilitar el botón según si el campo de texto está vacío o no
+    var isAddButtonEnabled by remember { mutableStateOf(false) }
 
 //    var code by remember { mutableStateOf(code) } // TODO
 //
@@ -304,7 +311,7 @@ fun ContentAddProductScreen(
                     productExpireDate
                 )
             },
-//                            readOnly = true,
+            readOnly = true,
 //                modifier = Modifier.weight(0.8f),
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -330,26 +337,31 @@ fun ContentAddProductScreen(
         )
 
         OutlinedTextField(
-            //TODO Impedir que se pegue texto
-//            value = productViewModel.productQuantity.replaceFirstChar { it.uppercase() },
             value = productViewModel.productQuantity,
             onValueChange = { productQuantity ->
-                productViewModel.onProductQuantityChange(
-                    productQuantity
-                )
+                productViewModel.onProductQuantityChange(productQuantity)
             },
 //            modifier = Modifier.weight(0.8f),
             modifier = Modifier
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp),
             label = { Text(text = stringResource(R.string.product_quantity)) },
-            placeholder = { Text(text = "1") },
+            //placeholder = { Text(text = "1") },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number
             ),
 //            isError = !viewModel.isValidProductQuantity,
             singleLine = true,
         )
+
+
+        // Actualizar el estado del botón
+        // Deshabilitar hasta rellenar todos los campos obligatorios
+        isAddButtonEnabled = productViewModel.barcode.isNotBlank()
+                && productViewModel.productName.isNotBlank()
+                && productViewModel.productExpireDate.isNotBlank()
+//                && productViewModel.productQuantity.isNotBlank()
+
 
         // Usar este método para obtener un producto con los datos de la API - TODO: Quitar de aquí
         // TODO: Lo estoy llamando 2 veces..
@@ -361,24 +373,19 @@ fun ContentAddProductScreen(
             name = productViewModel.productName,
             imageUrl = productViewModel.productUrl,
             expirationDate = Utils.getTimeMillisOfStringDate(productViewModel.productExpireDate),
-            dateAdded = System.currentTimeMillis().toString(), // TODO
             expirationDateInString = productViewModel.productExpireDate,
+            dateAdded = System.currentTimeMillis(),
+            dateAddedInString = Utils.getStringDateFromMillis(System.currentTimeMillis()),
             quantity = productViewModel.productQuantity
         )
+
+//        ProductQuantity(product = product)
 
         scope.launch {
             productViewModel.onProductChange(product = product)
         }
 
-        val context = LocalContext.current // TODO PARA NOTIFICACION
-        Button(
-            onClick = {
-                // MOVER
-                productViewModel.sendNotificacion(context = context, product = product)
-            }
-        ) {
-            Text(text = "Enviar notificación")
-        }
+
 
         var errorMessage: String
         Button(
@@ -395,12 +402,14 @@ fun ContentAddProductScreen(
 
                 // TODO
                 val product = Product(
+
                     barcode = productViewModel.barcode,
                     name = productViewModel.productName,
                     imageUrl = productViewModel.productUrl,
                     expirationDate = Utils.getTimeMillisOfStringDate(productViewModel.productExpireDate),
-                    dateAdded = "lala",
                     expirationDateInString = productViewModel.productExpireDate,
+                    dateAdded = System.currentTimeMillis(),
+                    dateAddedInString = Utils.getStringDateFromMillis(System.currentTimeMillis()),
                     quantity = productViewModel.productQuantity
                 )
 
@@ -413,35 +422,36 @@ fun ContentAddProductScreen(
                     errorMessage = e.message.toString()
                 }
 
+
                 // MOVER
 //                productViewModel.sendNotificacion(context = context)
 
 
                 navController.popBackStack()
-            }
+            },
+            enabled = isAddButtonEnabled
         ) {
             Text(text = stringResource(id = R.string.add))
         }
 
+
+
+
         // La primera vez que entramos a la pantalla, no intenta cargar los datos
         // La segunda vez que se entra, es después de escanear el código y ya carga correctamente los datos.
         if (productViewModel.isBarcodeScanned) {
-            scope.launch {
+            scope.launch {// TODO anotacion
                 productViewModel.getProductFromApi(productViewModel.barcode)
                 productViewModel.setIsBarcodeScanned(false)
             }
         }
 
-
-
-
-
-
-
-
-
-
-
+        //TODO
+        // Añadir notificación programada
+//        productViewModel.checkAndScheduleNotification(LocalContext.current, product)
+//        productViewModel.scheduleNotification(context, notificationId = 1, delayMillis = 5000)
+//        val expiryNotificationManager = ExpiryNotificationManager(context = context)
+//        expiryNotificationManager.scheduleExpiryNotification(Date(product.expirationDate))
 
         Button(
             onClick = {
@@ -449,13 +459,12 @@ fun ContentAddProductScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(8.dp),
         ) {
             Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones")
             Spacer(modifier = Modifier.width(8.dp))
             Text("Ver Notificaciones")
         }
-
 
     }
 }

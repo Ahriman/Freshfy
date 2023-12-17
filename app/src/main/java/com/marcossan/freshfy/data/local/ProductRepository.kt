@@ -48,7 +48,6 @@ class ProductRepository(
         productDao.deleteProduct(product)
     }
 
-
 //    suspend fun getProduct(productId: Long): Product? {
 //        return productDao.getProductById(productId)
 //    }

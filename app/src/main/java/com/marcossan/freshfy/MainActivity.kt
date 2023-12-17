@@ -12,7 +12,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.marcossan.freshfy.navigation.Navigation
 import com.marcossan.freshfy.ui.theme.DespensaTheme
-import com.marcossan.freshfy.viewmodels.EditProductViewModel
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,6 +20,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             DespensaTheme {
                 // A surface container using the 'background' color from the theme
@@ -29,11 +29,28 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val productViewModel by viewModels<ProductViewModel>()
-                    val editProductViewModel by viewModels<EditProductViewModel>()
-                    Navigation(productViewModel = productViewModel, editProductViewModel = editProductViewModel)
+//
+//                    // Observa el LiveData
+//                    productViewModel.allProducts.observe(this) { products ->
+//                        // Iterar sobre los productos y mostrar notificaciones
+//                        products.forEach { product ->
+//                            // Añadir notificación programada
+//                            productViewModel.checkAndScheduleNotification(this, product)
+//                            showNotification(product.notificationId ?: 0)
+//                            Log.d("Product", "Product Name: ${product.name}")
+//                        }
+//                    }
 
+                    Navigation(productViewModel = productViewModel)
                 }
             }
         }
     }
+
+//    private fun showNotification(notificationId: Int) {
+//        // Lógica para mostrar la notificación utilizando NotificationManager
+//        // ...
+//        Log.d("Product", "notificationId: ${notificationId}")
+//    }
+
 }

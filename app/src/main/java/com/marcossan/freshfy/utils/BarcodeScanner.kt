@@ -5,6 +5,7 @@ import androidx.navigation.NavController
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import com.marcossan.freshfy.navigation.Screens
 import com.marcossan.freshfy.viewmodels.ProductViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -124,7 +125,7 @@ class BarcodeScanner(
                     // Task completed successfully
 //                    barCodeResults.value = barcode.displayValue
                     viewModel.onScannedBarcode(barcode = barcode.displayValue.toString())
-                    navController.navigate(route = "add/${barcode.displayValue.toString()}")
+                    navController.navigate(route = "${Screens.AddProductScreen.route}/${barcode.displayValue.toString()}")
 //                    navController.navigate(route = Screens.ScannerScreen.route)
                     barCodeResults.value = "Ok"
                     scannerResult = ScannerResult.OK

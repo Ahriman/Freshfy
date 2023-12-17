@@ -29,84 +29,87 @@ import androidx.navigation.navArgument
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
-import com.marcossan.freshfy.viewmodels.EditProductViewModel
-import com.marcossan.freshfy.views.AddProductScreen
 import com.marcossan.freshfy.viewmodels.ProductViewModel
+import com.marcossan.freshfy.views.AddProductScreen
 import com.marcossan.freshfy.views.EditProductScreen
+import com.marcossan.freshfy.views.ProductScreen
 import com.marcossan.freshfy.views.ProductsListScreen
-import com.marcossan.freshfy.views.BarcodeScannerScreen
 
+@OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun Navigation(
-    productViewModel: ProductViewModel,
-    editProductViewModel: EditProductViewModel
+    productViewModel: ProductViewModel
 ) {
     // Solicitar permisos al iniciar la aplicación
-    NotificationScreen()
+    val permissionState =
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
 
-//    LaunchedEffect(key1 = true) {
-////        productViewModel.requestPermission()
-//
-//
+    LaunchedEffect(true) {
+        permissionState.launchPermissionRequest()
+    }
+
+    permissionState.status.isGranted
+
+//    if (permissionState.status.isGranted) {
+//        Text(text = "El permiso fue condecido")
+//    } else if (!permissionState.status.shouldShowRationale) {
+//        Text(text = "Mostrar racional")
+//    } else {
+//        Text(text = "El permiso fue denegado")
 //    }
-
 
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "start") {
-        composable("start") {
+    NavHost(navController = navController, startDestination = Screens.ProductsListScreen.route) {
+        composable(Screens.ProductsListScreen.route) {
             ProductsListScreen(navController, productViewModel)
         }
 
 //        // Entrada por defecto
-        composable("add") {
-            AddProductScreen(navController, productViewModel, it.arguments?.getString("code") ?: "")
-        }
-
-        // Entrada desde el escáner de códigos de barras
-        composable("add/{code}", arguments = listOf(
-            navArgument("code") { type = NavType.StringType }
-        )) {
+        composable(Screens.AddProductScreen.route) {
             AddProductScreen(
-                navController, productViewModel, it.arguments?.getString("code") ?: "",
+                navController,
+                productViewModel,
+                it.arguments?.getString("barcode") ?: ""
             )
         }
 
-        composable(Screens.EdiProductScreen.route, arguments = listOf(
-            navArgument("id") { type = NavType.LongType },
-//            navArgument("barcode") { type = NavType.StringType }, // TODO: Long?
-//            navArgument("name") { type = NavType.StringType },
-//            navArgument("expirationDate") { type = NavType.LongType },
-//            navArgument("quantity") { type = NavType.StringType }, // TODO: Int?
+        // Entrada desde el escáner de códigos de barras
+        composable("${Screens.AddProductScreen.route}/{barcode}", arguments = listOf(
+            navArgument("barcode") { type = NavType.StringType }
         )) {
+            AddProductScreen(
+                navController, productViewModel, it.arguments?.getString("barcode") ?: "",
+            )
+        }
+
+        composable(
+            Screens.EdiProductScreen.route, arguments = listOf(
+                navArgument("id") { type = NavType.LongType },
+            )
+        ) {
             EditProductScreen(
                 navController,
                 productViewModel,
                 it.arguments!!.getLong("id"),
-//                it.arguments?.getString("barcode"),
-//                it.arguments?.getString("name"),
-////                it.arguments?.getString("expirationDate"),
-//                it.arguments?.getLong("expirationDate"),
-//                it.arguments?.getString("quantity"),
             )
         }
 
-// java.lang.IllegalArgumentException: Navigation destination that matches request NavDeepLinkRequest{
-// uri=android-app://androidx.navigation/scanner_screen/20195335 }
-// cannot be found in the navigation graph ComposeNavGraph(0x0) startDestination={Destination(0xa2cd94f5) route=start}
-
         composable(
-            route = Screens.BarcodeScannerScreen.route,
-            arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+            route = Screens.ProductScreen.route,
+            arguments = listOf(
+                navArgument("barcode") { type = NavType.StringType },
+                navArgument("id") { type = NavType.LongType },
+            )
         ) {
             val barcode = it.arguments?.getString("barcode")
             requireNotNull(barcode) { "No puede ser nulo porque la pantalla de producto necesita un código de barras" }
-            BarcodeScannerScreen(
+            ProductScreen(
                 navController,
                 productViewModel = productViewModel,
-                barcode = barcode
+                barcode = barcode,
+                it.arguments!!.getLong("id"),
             )
         }
 
@@ -118,7 +121,6 @@ fun Navigation(
             )
         }
     }
-
 
 
 }
@@ -149,30 +151,4 @@ fun NotificationScreen(onBackPress: () -> Unit) {
             Text("Volver a la pantalla principal")
         }
     }
-}
-
-
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun NotificationScreen() {
-    val permissionState =
-        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-
-    LaunchedEffect(true) {
-        permissionState.launchPermissionRequest()
-    }
-
-    permissionState.status.isGranted
-
-    if (permissionState.status.isGranted) {
-        androidx.compose.material.Text(text = "El permiso fue condecido")
-    } else if(!permissionState.status.shouldShowRationale){
-        androidx.compose.material.Text(text = "Mostrar racional")
-    } else {
-        androidx.compose.material.Text(text = "El permiso fue denegado")
-    }
-
-
-    androidx.compose.material.Text(text = "Notificación")
 }

@@ -1,15 +1,21 @@
 package com.marcossan.freshfy.viewmodels
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,7 +29,7 @@ import com.marcossan.freshfy.data.network.ProductApiService
 import com.marcossan.freshfy.data.network.ProductJson
 import com.marcossan.freshfy.data.local.ProductRepository
 import com.marcossan.freshfy.states.NotificationState
-import com.marcossan.freshfy.states.ProductState
+import com.marcossan.freshfy.utils.NotificationReceiver
 import com.marcossan.freshfy.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +40,11 @@ import kotlinx.serialization.MissingFieldException
 import java.io.StringReader
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
+
+const val NOTIFICATION_ID_EXTRA = "notification_id"
 
 sealed interface ScannerUiState {
     data class Success(val product: Product) : ScannerUiState
@@ -62,8 +72,8 @@ class ProductViewModel @Inject constructor(
     var state by mutableStateOf(ProductsState())
         private set
 
-    var productState by mutableStateOf(ProductState())
-        private set
+//    var productState by mutableStateOf(ProductState())
+//        private set
 
     // Comportamiento cuándo se inicie el ViewModel
     init {
@@ -73,14 +83,24 @@ class ProductViewModel @Inject constructor(
                     products = it
                 )
             }
+
+
         }
+
+
 
     }
 
     @Throws(Exception::class)
     fun addProduct(product: Product) = viewModelScope.launch {
-        println("product = $product") // TODO QUITAR
+        val newNotificationId = generateNotificationId(product)
+        product.notificationId = newNotificationId
+
+        // Agregar el producto a Room
         productRepository.addProduct(product)
+
+        // Programar notificación
+        scheduleNotification(product, newNotificationId)
     }
 
     fun updateProduct(product: Product) = viewModelScope.launch {
@@ -118,6 +138,87 @@ class ProductViewModel @Inject constructor(
 //        productRepository.getProduct(productId)
 //    }
 
+//    fun scheduleNotification(context: Context, notificationId: Int, delayMillis: Long) {
+//        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//        val intent = Intent(context, NotificationReceiver::class.java)
+//            .setAction("com.marcossan.freshfy.ACTION_SHOW_NOTIFICATION")
+//            .putExtra(NOTIFICATION_ID_EXTRA, notificationId)
+//
+//        val pendingIntent = PendingIntent.getBroadcast(
+//            context,
+//            notificationId,
+//            intent,
+////            PendingIntent.FLAG_ONE_SHOT
+//            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+//        )
+//
+//        // Programar la acción del BroadcastReceiver para ejecutarse en el futuro
+//        alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delayMillis, pendingIntent)
+//    }
+
+    fun scheduleNotification(context: Context, notificationId: Int, delayMillis: Long) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.SCHEDULE_EXACT_ALARM
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // El permiso para programar alarmas exactas está concedido
+            scheduleExactAlarm(context, notificationId, delayMillis)
+        } else {
+            // El permiso no está concedido, solicita el permiso o maneja la situación de otra manera
+            viewModelScope.launch {
+                // Ejemplo: solicitar permiso al usuario (debe implementarse según tus necesidades)
+                requestScheduleExactAlarmPermission(context)
+            }
+        }
+    }
+
+    private fun scheduleExactAlarm(context: Context, notificationId: Int, delayMillis: Long) {
+        val alarmManager = context.getSystemService<AlarmManager>()
+        val intent = Intent(context, NotificationReceiver::class.java)
+            .setAction("com.example.ACTION_SHOW_NOTIFICATION")
+            .putExtra(NOTIFICATION_ID_EXTRA, notificationId)
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId,
+            intent,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Programar la acción del BroadcastReceiver para ejecutarse en el futuro
+        alarmManager?.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delayMillis, pendingIntent)
+    }
+
+    private suspend fun requestScheduleExactAlarmPermission(context: Context) {
+        // Ejemplo: implementar lógica para solicitar permiso al usuario
+        // (puede ser mediante un diálogo, una actividad, etc.)
+    }
+
+    fun checkAndScheduleNotification(context: Context, product: Product) {
+        if (isExpirationNear(Date(product.expirationDate))) {
+            val notificationId = generateNotificationId(product)
+            scheduleNotification(context, notificationId, product.expirationDate)
+        }
+    }
+
+    private fun isExpirationNear(expiryDate: Date): Boolean {
+        val calendar = Calendar.getInstance()
+        calendar.time = expiryDate
+        calendar.add(Calendar.DAY_OF_YEAR, -5) // Restar 5 días
+
+        return System.currentTimeMillis() >= calendar.timeInMillis
+    }
+
+    private fun generateNotificationId(product: Product): Int {
+        return product.name.hashCode()
+    }
+
+    private fun scheduleNotification(product: Product, notificationId: Int) {
+        // Lógica para programar la notificación, por ejemplo, usando AlarmManager
+        // ...
+        println("Notificación para el producto: $product")
+    }
 
     fun scheduleNotification(days: Long, context: Context) = viewModelScope.launch {
 
@@ -156,11 +257,6 @@ class ProductViewModel @Inject constructor(
 
     fun sendNotificacion(context: Context, product: Product) {
 
-//        val navcontroller = NavController(context = context)
-//        navcontroller.graph.apply {
-//            addNode
-//        }
-
         // TODO: Hacer que vaya a la pantalla del producto notificado
         val intent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -172,10 +268,12 @@ class ProductViewModel @Inject constructor(
         )
 
 
+        val daysToExpire = Utils.calculateDaysUntilExpiration(product.expirationDate)
+
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         val notification = Notification.Builder(context, FreshfyApp.CHANNEL_ID)
             .setContentTitle(notificationState.name)
-            .setContentText("A tu producto ${product.name} le quedan [X] días para caducar. eer" + notificationState.name.hashCode())
+            .setContentText("A tu producto ${product.name} le quedan $daysToExpire días para caducar.")
             .setSmallIcon(R.drawable.logo_notificacion)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true) // Permite que la notifiación sea deslizable
@@ -263,7 +361,7 @@ class ProductViewModel @Inject constructor(
     private var _productExpireDate by mutableStateOf("")
     val productExpireDate get() = _productExpireDate
 
-    private var _productQuantity by mutableStateOf("")
+    private var _productQuantity by mutableStateOf("1")
     val productQuantity get() = _productQuantity
 
 
@@ -420,7 +518,8 @@ class ProductViewModel @Inject constructor(
 //            expirationDate = fechaCaducidad,
             expirationDate = Utils.getTimeMillisOfStringDate(_productExpireDate),
             expirationDateInString = _productExpireDate,
-            dateAdded = calcularFechaActual()
+            dateAdded = System.currentTimeMillis(),
+            dateAddedInString = Utils.getStringDateFromMillis(System.currentTimeMillis())
         )
     }
 

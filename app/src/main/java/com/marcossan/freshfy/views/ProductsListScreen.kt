@@ -1,15 +1,18 @@
 package com.marcossan.freshfy.views
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +20,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +63,8 @@ fun ProductsListScreen(
     viewModel: ProductViewModel
 ) {
 
+
+
     // Utiliza un MutableState para observar los cambios en la lista de productos
     var products by remember { mutableStateOf<List<Product>>(emptyList()) }
 
@@ -71,6 +81,8 @@ fun ProductsListScreen(
             viewModel.allProducts.removeObserver(observer)
         }
     }
+
+
 
 
     Scaffold(
@@ -144,7 +156,7 @@ fun ContentProductsListScreen(
                     navController = navController,
                     viewModel = viewModel,
                     product = product,
-                    onOpenProductItem = { navController.navigate(route = "scanner/${product.barcode}") }
+                    onOpenProductItem = { navController.navigate(route = "scanner/${product.barcode}/${product.id}") } // TODO
                 )
 
             }
@@ -160,14 +172,19 @@ fun ProductListItem(
     onOpenProductItem: () -> Unit,
 ) {
 
+
+    var isDeleteDialogVisible by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onOpenProductItem() }
     ) {
-        Box(modifier = Modifier
-            .weight(2f)
-            .align(Alignment.CenterVertically)) {
+        Box(
+            modifier = Modifier
+                .weight(2f)
+                .align(Alignment.CenterVertically)
+        ) {
             AsyncImage(
                 model = product.imageUrl,
                 contentDescription = stringResource(R.string.image_content_description),
@@ -198,7 +215,7 @@ fun ProductListItem(
             )
             // Fecha añadido
             Text(
-                text = stringResource(R.string.added, product.dateAdded),
+                text = stringResource(R.string.added, product.dateAddedInString),
             )
         }
 
@@ -219,11 +236,26 @@ fun ProductListItem(
                 )
             }
             IconButton(onClick = {
-                viewModel.deleteProduct(product)
+
+                isDeleteDialogVisible = true
             }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.delete)
+                    contentDescription = stringResource(R.string.delete),
+                    tint = Color.Red
+                )
+            }
+
+            // Mostrar diálogo de confirmación de eliminación
+            if (isDeleteDialogVisible) {
+                DeleteProductDialog(
+                    onConfirm = {
+                        viewModel.deleteProduct(product)
+                        isDeleteDialogVisible = false
+                    },
+                    onDismiss = {
+                        isDeleteDialogVisible = false
+                    }
                 )
             }
         }
@@ -232,4 +264,53 @@ fun ProductListItem(
 
     Divider()
 
+}
+
+
+@Composable
+fun DeleteProductDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = {
+            onDismiss.invoke()
+        },
+        title = {
+            Text("Eliminar producto")
+        },
+        text = {
+            Text("¿Estás seguro de que deseas eliminar este producto?")
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onConfirm.invoke()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Eliminar")
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = {
+                    onDismiss.invoke()
+                }
+            ) {
+                Text("Cancelar")
+            }
+        },
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = null,
+                modifier = Modifier.size(60.dp)
+            )
+        },
+        iconContentColor = Color.Red
+    )
 }

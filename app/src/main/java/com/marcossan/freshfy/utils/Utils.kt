@@ -2,6 +2,7 @@ package com.marcossan.freshfy.utils
 
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.concurrent.TimeUnit
 
 class Utils {
 
@@ -33,6 +34,14 @@ class Utils {
 
             // Format the Date object to a string using the specified format
             return dateFormat.format(date)
+        }
+
+        fun calculateDaysUntilExpiration(expirationDateInMillis: Long): Long {
+            val currentTimeInMillis = System.currentTimeMillis()
+            val timeDifferenceInMillis = expirationDateInMillis - currentTimeInMillis
+
+            // Convertimos la diferencia de tiempo a días redondeando hacia abajo
+            return TimeUnit.MILLISECONDS.toDays(timeDifferenceInMillis)
         }
 
     }

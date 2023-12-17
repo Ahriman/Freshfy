@@ -1,21 +1,46 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.marcossan.freshfy.views
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.marcossan.freshfy.R
@@ -24,57 +49,147 @@ import com.marcossan.freshfy.viewmodels.ProductViewModel
 import com.marcossan.freshfy.viewmodels.ScannerUiState
 
 
-//@Serializable
-data class User(val name: String, val yearOfBirth: Int)
-
-
+@SuppressLint("StateFlowValueCalledInComposition")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(
     navController: NavController,
     productViewModel: ProductViewModel,
-    scannerUiState: ScannerUiState,
-    modifier: Modifier = Modifier
-//    onOpenProductItem: () -> Unit,
+    barcode: String?,
+    productId: Long
 ) {
+
+    // Utiliza un MutableState para observar los cambios en el producto
+    var product by remember { mutableStateOf<Product?>(null) }
+
+    // Observa los cambios en el producto específico
+    DisposableEffect(Unit) {
+        val observer = Observer<Product?> { updatedProduct ->
+            updatedProduct?.let {
+                product = updatedProduct
+            }
+        }
+
+        // Utiliza un método en tu ViewModel para obtener el producto específico por ID
+        productViewModel.getProductById(productId = productId).observeForever(observer)
+
+        onDispose {
+            // Desvincula la observación cuando el componente se dispara
+            productViewModel.getProductById(productId = productId).removeObserver(observer)
+        }
+    }
+
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            CenterAlignedTopAppBar(
+                scrollBehavior = scrollBehavior,
+                title = {
+                    Text(
+                        text = stringResource(R.string.product_screen_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = Color.White
+                        )
+                    }
+                }
+            )
+        }
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
+
+            productViewModel.getProductFromApi(barcode = barcode)
+            ContentProductScreen(
+                navController = navController,
+                productViewModel = productViewModel,
+                scannerUiState = productViewModel.scannerUiState,
+                product = product
+            )
+        }
+    }
+}
+
+@Composable
+fun ContentProductScreen(
+    navController: NavController,
+    productViewModel: ProductViewModel,
+    scannerUiState: ScannerUiState,
+    modifier: Modifier = Modifier,
+    product: Product?
+) {
+
     when (scannerUiState) {
         is ScannerUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
         is ScannerUiState.Success -> ResultScreen(
             productViewModel,
-            scannerUiState.product,
+//            scannerUiState.product,
+            product = product,
             modifier = modifier.fillMaxWidth()
         )
+
         is ScannerUiState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
     }
 }
+
 
 /**
  * ResultScreen displaying number of photos retrieved.
  */
 @Composable
-fun ResultScreen(productViewModel: ProductViewModel, product: Product, modifier: Modifier = Modifier) {
+fun ResultScreen(
+    productViewModel: ProductViewModel,
+    product: Product?,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
 
-    LazyColumn(
-        modifier = modifier.padding(16.dp)
+    Column(
+        modifier = modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        item {
-            Text(text = stringResource(R.string.barcode_result, product.barcode))
-            Text(text = stringResource(R.string.name) + ": ${product.name}")
-            // TODO
-            Text(text = "Fecha de caducidad: ${product.expirationDate}")
-            Text(text = "Cantidad: "+ ": ${product.quantity}")
-            // TODO: Arreglar fecha, porque se actualiza al hacer scroll
-            Text(text = "Añadido el día: ${product.dateAdded}")
+        Text(text = product?.name ?: "", textAlign = TextAlign.Center, fontSize = 18.sp)
+        Spacer(modifier = Modifier.padding(16.dp))
+        Column {
+            Text(text = stringResource(R.string.barcode_result, product?.barcode ?: ""))
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                AsyncImage(
-                    model = product.imageUrl,
-                    contentDescription = "",
-                    modifier = Modifier
-                        .padding(top = 15.dp)
-                        .size(300.dp)
-                )
-            }
+            // TODO Extraer Strings
+            Text(text = stringResource(R.string.date_product_expire) + ": ${product?.expirationDateInString}")
+            Text(text = stringResource(R.string.product_quantity) + ": ${product?.quantity}")
+            Text(text = stringResource(R.string.product_added_day) + ": ${product?.dateAddedInString}")
         }
+        Spacer(modifier = Modifier.padding(16.dp))
+        AsyncImage(
+            model = product?.imageUrl ?: "",
+            contentDescription = "",
+            modifier = Modifier.size(450.dp)
+        )
+
+        Button(
+            onClick = {
+                if (product != null) {
+                    productViewModel.sendNotificacion(context = context, product = product)
+                }
+            }
+        ) {
+            Text(text = stringResource(R.string.test_notification_button))
+        }
+
     }
 }
 
@@ -99,8 +214,4 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
         )
         Text(text = stringResource(R.string.loading_failed), modifier = Modifier.padding(16.dp))
     }
-}
-
-fun String.eliminarDoblesComillas() {
-    this.removeSurrounding("\"")
 }

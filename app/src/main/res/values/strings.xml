@@ -18,11 +18,15 @@
     <string name="barcode_label">Código de barras</string>
     <string name="barcode_result">Código de barras: %1$s</string>
     <string name="name">Nombre</string>
-    <string name="edit_screen_title">Editar View</string>
+    <string name="edit_screen_title">Editar producto</string>
+    <string name="product_screen_title">Información del producto</string>
     <string name="code">Código: %1$s</string>
     <string name="expire">Caduca: %1$s</string>
     <string name="added">Añadido: %1$s</string>
     <string name="image_content_description">Imagen del producto</string>
     <string name="products_screen_list_empty_message">La lista de productos está vacía. \n\nAñade algún producto para comenzar con el control de fechas de caducidad.</string>
     <string name="notification_product_expire_date">Actualizaciones de producto</string>
+    <string name="date_product_expire">Fecha de caducidad</string>
+    <string name="product_added_day">Añadido el día</string>
+    <string name="test_notification_button">Probar notificación</string>
 </resources>

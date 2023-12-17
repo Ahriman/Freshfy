@@ -1,16 +1,23 @@
 package com.marcossan.freshfy.views
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
@@ -18,16 +25,19 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,19 +46,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import com.marcossan.freshfy.R
 import com.marcossan.freshfy.data.model.Product
 import com.marcossan.freshfy.utils.BarcodeScanner
-import com.marcossan.freshfy.viewmodels.EditProductViewModel
 import com.marcossan.freshfy.viewmodels.ProductViewModel
+import com.marcossan.freshfy.views.elements.ProductQuantity
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -60,13 +76,6 @@ fun EditProductScreen(
     productViewModel: ProductViewModel,
     productId: Long
 ) {
-
-
-
-
-
-
-
 
 
     lateinit var barcodeScanner: BarcodeScanner
@@ -121,7 +130,7 @@ fun ContentEditProductScreen(
 ) {
 
     // Utiliza un MutableState para observar los cambios en el producto
-    var product by remember { mutableStateOf<Product?>(null) } //Product(0,"", "", "", 0L, "", "", "")
+    var product by remember { mutableStateOf<Product?>(null) }
 
     // Observa los cambios en el producto específico
     DisposableEffect(Unit) {
@@ -140,16 +149,16 @@ fun ContentEditProductScreen(
         }
     }
 
-    println("Producto barcode ${product?.barcode}")
-
     val scope = rememberCoroutineScope()
+
+    // Habilitar o deshabilitar el botón según si el campo de texto está vacío o no
+    var isAddButtonEnabled by remember { mutableStateOf(false) }
 
 //    scope.launch {
 //        editProductViewModel.getProduct(barcode = product?.barcode ?: "")
 //    }
 //
 //    val newProduct by rememberUpdatedState(newValue = editProductViewModel.product)
-
 
 
 //    var barcode by remember { mutableStateOf(product?.barcode) } // TODO
@@ -162,7 +171,6 @@ fun ContentEditProductScreen(
 
     // Obtener datos producto
 //    productViewModel.getProduct(barcode ?: "")
-
 
 
 //    println("Código: $barcode")
@@ -351,7 +359,7 @@ fun ContentEditProductScreen(
 //                    productExpireDate
 //                )
 //            },
-//                            readOnly = true,
+            readOnly = true,
 //                modifier = Modifier.weight(0.8f),
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -388,7 +396,9 @@ fun ContentEditProductScreen(
             value = product?.quantity ?: "1",
             onValueChange = { productQuantity ->
 //                product?.quantity = productQuantity
-                product = product?.copy(quantity = productQuantity)
+                if (productQuantity.isNotBlank() && productQuantity.length <= 3 && productQuantity.toInt() in 1..999) {
+                    product = product?.copy(quantity = productQuantity)
+                }
             },
 //            modifier = Modifier.weight(0.8f),
             modifier = Modifier
@@ -403,8 +413,29 @@ fun ContentEditProductScreen(
             singleLine = true,
         )
 
-        // Botón para guardar los cambios
+//        var newProduct = product
+//
+//        product?.let { product ->
+//            ProductQuantity(
+//                product = product, onProductQuantityChange = {
+//                    newProduct = product.copy(quantity = product.quantity)
+//                },
+//                scope = scope
+//            )
+//        } // TODO: El componente aún no está listo
+//
+//        product = newProduct
 
+
+        // Actualizar el estado del botón
+        // Deshabilitar hasta rellenar todos los campos obligatorios
+        // TODO: Mejorar comprobación si los datos son válidos
+        isAddButtonEnabled = product?.barcode?.isNotBlank() ?: false
+                && product?.name?.isNotBlank() ?: false
+                && product?.expirationDateInString?.isNotBlank() ?: false
+//                && product?.quantity?.isNotBlank() ?: false
+
+        // Botón para guardar los cambios
         Button(
             onClick = {
 //                val product = Product(id = id, code = code!!, name = name!!, imageUrl = "") // TODO imageUrl
@@ -429,10 +460,12 @@ fun ContentEditProductScreen(
                 }
 //                productViewModel.updateProduct(product ?: Product(0,"", "", "", 0L, "", "", ""))
                 navController.popBackStack()
-            }
+            },
+            enabled = isAddButtonEnabled
         ) {
             Text(text = stringResource(R.string.edit))
         }
 
     }
 }
+
