@@ -25,6 +25,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -173,9 +175,7 @@ fun ResultScreen(
         Text(text = product?.name ?: "", textAlign = TextAlign.Center, fontSize = 18.sp)
         Spacer(modifier = Modifier.padding(16.dp))
         Column {
-            Text(text = stringResource(R.string.barcode_result, product?.barcode ?: ""))
-
-            // TODO Extraer Strings
+            Text(text = stringResource(R.string.barcode_result) + ": ${product?.barcode}")
             Text(text = stringResource(R.string.date_product_expire) + ": ${product?.expirationDateInString}")
             Text(text = stringResource(R.string.product_quantity) + ": ${product?.quantity}")
             Text(text = stringResource(R.string.product_added_day) + ": ${product?.dateAddedInString}")
@@ -239,7 +239,7 @@ fun ShowMenuOptions(product: Product?, productViewModel: ProductViewModel) {
         Icon(
             imageVector = Icons.Default.MoreVert,
             contentDescription = stringResource(R.string.test_notification_button),
-            tint = Color.White
+            tint = MaterialTheme.colorScheme.onSecondary
         )
     }
 
@@ -248,15 +248,23 @@ fun ShowMenuOptions(product: Product?, productViewModel: ProductViewModel) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = { expanded = false },
-        modifier = Modifier.background(Color.White),
+        modifier = Modifier.background(MaterialTheme.colorScheme.onSecondary),
         offset = anchorPosition
     ) {
-        DropdownMenuItem(onClick = { /* Handle option 1 click */ }, text = {
-            Text(stringResource(R.string.test_notification_button), modifier = Modifier.clickable {
-                if (product != null) {
-                    productViewModel.sendNotificacion(context = context, product = product)
-                }
-            })
-        })
+        DropdownMenuItem(
+            onClick = { /* Handle option 1 click */ },
+            text = {
+                Text(
+                    stringResource(R.string.test_notification_button),
+                    modifier = Modifier.clickable {
+                        if (product != null) {
+                            productViewModel.sendNotificacion(context = context, product = product)
+                        }
+                    },
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            },
+            colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.onSecondary)
+        )
     }
 }

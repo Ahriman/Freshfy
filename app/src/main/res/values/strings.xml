@@ -16,10 +16,10 @@
     <string name="back">Atrás</string>
     <string name="add_product">Agregar producto</string>
     <string name="barcode_label">Código de barras</string>
-    <string name="barcode_result">Código de barras: %1$s</string>
+    <string name="barcode_result">Código de barras</string>
     <string name="name">Nombre</string>
     <string name="edit_screen_title">Editar producto</string>
-    <string name="product_screen_title">Información del producto</string>
+    <string name="product_screen_title">Info producto</string>
     <string name="code">Código: %1$s</string>
     <string name="expire">Caduca: %1$s</string>
     <string name="added">Añadido: %1$s</string>
