@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Freshfy</string>
-    <string name="loading_failed">Failed to load</string>
+    <string name="loading_failed">No tiene imagen</string>
     <string name="loading">Loading</string>
     <string name="add_button">Añadir producto</string>
     <string name="product_quantity">Cantidad</string>

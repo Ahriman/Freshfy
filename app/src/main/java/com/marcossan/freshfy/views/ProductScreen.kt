@@ -134,17 +134,13 @@ fun ContentProductScreen(
     product: Product?
 ) {
 
-    when (scannerUiState) {
-        is ScannerUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
-        is ScannerUiState.Success -> ResultScreen(
-            productViewModel,
-//            scannerUiState.product,
-            product = product,
-            modifier = modifier.fillMaxWidth()
-        )
+    ResultScreen(
+        productViewModel,
+        scannerUiState = scannerUiState,
+        product = product,
+        modifier = modifier.fillMaxWidth()
+    )
 
-        is ScannerUiState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
-    }
 }
 
 
@@ -155,7 +151,8 @@ fun ContentProductScreen(
 fun ResultScreen(
     productViewModel: ProductViewModel,
     product: Product?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    scannerUiState: ScannerUiState
 ) {
     val context = LocalContext.current
 
@@ -174,11 +171,17 @@ fun ResultScreen(
             Text(text = stringResource(R.string.product_added_day) + ": ${product?.dateAddedInString}")
         }
         Spacer(modifier = Modifier.padding(16.dp))
-        AsyncImage(
-            model = product?.imageUrl ?: "",
-            contentDescription = "",
-            modifier = Modifier.size(450.dp)
-        )
+
+        when (scannerUiState) {
+            is ScannerUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
+            is ScannerUiState.Success -> AsyncImage(
+                model = product?.imageUrl ?: "",
+                contentDescription = "",
+                modifier = Modifier.size(450.dp)
+            )
+
+            is ScannerUiState.Error -> ErrorScreen()
+        }
 
         Button(
             onClick = {
