@@ -2,11 +2,13 @@ package com.marcossan.freshfy.ui.views
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -27,6 +29,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,11 +37,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -111,6 +119,14 @@ fun ContentEditProductScreen(
     productId: Long
 ) {
 
+    val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+    val focusRequester = FocusRequester()
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
     // Utiliza un MutableState para observar los cambios en el producto
     var product by remember { mutableStateOf<Product?>(null) }
 
@@ -131,12 +147,8 @@ fun ContentEditProductScreen(
         }
     }
 
-    val scope = rememberCoroutineScope()
-
     // Habilitar o deshabilitar el botón según si el campo de texto está vacío o no
     var isAddButtonEnabled by remember { mutableStateOf(false) }
-
-    println("Producto de base de datos: ${productViewModel.product}")
 
     Column(
         modifier = Modifier
@@ -146,25 +158,57 @@ fun ContentEditProductScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
-            value = product?.barcode ?: "",
+            value = if (productViewModel.isBarcodeScanned) {
+                productViewModel.barcode
+            } else {
+                product?.barcode ?: ""
+            },
             onValueChange = { productBarcode ->
-                product = product?.copy(barcode = productBarcode)
+                if (productViewModel.isBarcodeScanned) {
+                    productViewModel.onBarcodeChange(productBarcode)
+                    product = product?.copy(barcode = productViewModel.barcode)
+                    productViewModel.setIsBarcodeScanned(false)
+                } else {
+                    product = product?.copy(barcode = productBarcode)
+                }
+
                 // En cada cambio del input, buscar el nombre del producto y añadirlo al campo nombre
                 if (productBarcode.isNotEmpty()) {
-                    scope.launch {
+
+                }
+
+                scope.launch {
+                    if (productBarcode.isNotEmpty()) {
                         productViewModel.getProductFromApi(productBarcode)
-                        if (productViewModel.productName.isNotBlank()) {
-                            product = product?.copy(name = productViewModel.productName)
-                            product = product?.copy(imageUrl = productViewModel.productUrl)
-                        }
-                        productViewModel.clearData()
                     }
+
+                    if (productViewModel.productName.isNotBlank()) {
+
+                        product = product?.copy(name = productViewModel.productName)
+                        product = product?.copy(imageUrl = productViewModel.productUrl)
+                    }
+                    productViewModel.clearData()
+
                 }
 
             },
             modifier = Modifier
                 .padding(horizontal = 30.dp)
-                .padding(bottom = 15.dp),
+                .padding(bottom = 15.dp)
+                .onFocusChanged {
+
+                    if (productViewModel.isBarcodeScanned && productViewModel.barcode.isNotEmpty()) {
+                        scope.launch {
+                            productViewModel.getProductFromApi(productViewModel.barcode)
+                            if (productViewModel.productName.isNotBlank()) {
+
+                                product = product?.copy(name = productViewModel.productName)
+                                product = product?.copy(imageUrl = productViewModel.productUrl)
+                            }
+                        }
+                    }
+                }
+                .focusRequester(focusRequester),
             label = { Text(text = stringResource(R.string.product_barcode)) },
             trailingIcon = {
                 Icon(painter = painterResource(id = R.drawable.barcode_scanner),
@@ -176,8 +220,10 @@ fun ContentEditProductScreen(
                     })
             },
             keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Next
             ),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             singleLine = true
 
         )
@@ -192,7 +238,8 @@ fun ContentEditProductScreen(
                 .padding(bottom = 15.dp),
             label = { Text(text = stringResource(R.string.product_name)) },
             keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Next
             ),
             singleLine = true
 
@@ -262,7 +309,8 @@ fun ContentEditProductScreen(
             },
 //                isError = !viewModel.validarFormatoFecha(),
             keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Next
             ),
             singleLine = true,
         )
@@ -280,8 +328,10 @@ fun ContentEditProductScreen(
             label = { Text(text = stringResource(R.string.product_quantity)) },
             placeholder = { Text(text = "1") },
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
             ),
+            keyboardActions = KeyboardActions(onNext = { focusManager.clearFocus() }),
             singleLine = true,
         )
 
