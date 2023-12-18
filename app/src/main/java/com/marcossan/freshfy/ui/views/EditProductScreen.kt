@@ -2,7 +2,6 @@ package com.marcossan.freshfy.ui.views
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -167,16 +166,11 @@ fun ContentEditProductScreen(
                 if (productViewModel.isBarcodeScanned) {
                     productViewModel.onBarcodeChange(productBarcode)
                     product = product?.copy(barcode = productViewModel.barcode)
-                    productViewModel.setIsBarcodeScanned(false)
                 } else {
                     product = product?.copy(barcode = productBarcode)
                 }
 
                 // En cada cambio del input, buscar el nombre del producto y añadirlo al campo nombre
-                if (productBarcode.isNotEmpty()) {
-
-                }
-
                 scope.launch {
                     if (productBarcode.isNotEmpty()) {
                         productViewModel.getProductFromApi(productBarcode)
@@ -187,7 +181,6 @@ fun ContentEditProductScreen(
                         product = product?.copy(name = productViewModel.productName)
                         product = product?.copy(imageUrl = productViewModel.productUrl)
                     }
-                    productViewModel.clearData()
 
                 }
 
@@ -196,14 +189,15 @@ fun ContentEditProductScreen(
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp)
                 .onFocusChanged {
-
+                    product = product?.copy(imageUrl = productViewModel.productUrl)
                     if (productViewModel.isBarcodeScanned && productViewModel.barcode.isNotEmpty()) {
                         scope.launch {
                             productViewModel.getProductFromApi(productViewModel.barcode)
                             if (productViewModel.productName.isNotBlank()) {
-
+                                product = product?.copy(barcode = productViewModel.barcode)
                                 product = product?.copy(name = productViewModel.productName)
                                 product = product?.copy(imageUrl = productViewModel.productUrl)
+
                             }
                         }
                     }
@@ -318,7 +312,10 @@ fun ContentEditProductScreen(
         OutlinedTextField(
             value = product?.quantity ?: "1",
             onValueChange = { productQuantity ->
-                if (productQuantity.isNotBlank() && productQuantity.length <= 3 && productQuantity.toInt() in 1..999) {
+                if (productQuantity.isBlank()) {
+                    product = product?.copy(quantity = "")
+                }
+                if (productQuantity.isNotBlank()) {
                     product = product?.copy(quantity = productQuantity)
                 }
             },
@@ -347,7 +344,10 @@ fun ContentEditProductScreen(
         Button(
             onClick = {
                 if (product != null) {
-                    productViewModel.updateProduct(product = product!!) // TODO
+                    product?.quantity?.ifEmpty { product = product?.copy(quantity = "1") }
+                    productViewModel.updateProduct(product = product!!)
+                    productViewModel.clearData()
+                    productViewModel.setIsBarcodeScanned(false)
                 }
                 navController.popBackStack()
             },

@@ -245,14 +245,18 @@ fun ContentAddProductScreen(
         OutlinedTextField(
             value = productViewModel.productQuantity,
             onValueChange = { productQuantity ->
-                productViewModel.onProductQuantityChange(productQuantity)
+                if (productQuantity.isBlank()){
+                    productViewModel.onProductQuantityChange("")
+                }
+                if (productQuantity.isNotBlank()) {
+                    productViewModel.onProductQuantityChange(productQuantity)
+                }
             },
-//            modifier = Modifier.weight(0.8f),
             modifier = Modifier
                 .padding(horizontal = 30.dp)
                 .padding(bottom = 15.dp),
             label = { Text(text = stringResource(R.string.product_quantity)) },
-            //placeholder = { Text(text = "1") },
+            placeholder = { Text(text = "1") },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number
             ),
